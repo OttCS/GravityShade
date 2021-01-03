@@ -1,5 +1,6 @@
 # GravityShade
 Official Github repository for GravityShade. Made with server gameplay in mind, this shader gives you a gorgeous look without the frame drops.
+#### Thank you for using GravityShade!
 
 ## Version 1.0.0
 Gravity10 Tonemap // gbuffers_terrain
@@ -15,6 +16,6 @@ Fixed dark nether
 
 Fixed Lantern waving to vary based on coordinates
 
-Removed sugarcane waving
+Fixed misalignment of water waves
 
-#### Thank you for using GravityShade!
+Removed sugarcane waving
