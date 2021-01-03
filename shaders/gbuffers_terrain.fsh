@@ -11,9 +11,9 @@ uniform sampler2D texture;
 uniform float rainStrength;
 uniform int worldTime;
 
+varying vec4 lmcoord;
 varying vec3 color;
 varying vec2 texcoord;
-varying vec4 lmcoord;
 
 const float sunPathRotation = -27.0;
 
