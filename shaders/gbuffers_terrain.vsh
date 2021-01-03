@@ -71,17 +71,17 @@ void main() {
 		} else if (mc_Entity.x == 10107) {
 
 			// Lily Pad
-			coordPos.y += 0.5f * wSin(coordPos.x + coordPos.z + tick, wFlex * 0.5f + rainStrength) * m;
-			coordPos.y += 0.5f * wSin(coordPos.x - coordPos.z + tick, wFlex + rainStrength) * m;
+			// coordPos.y += 0.5f * wSin(coordPos.x + coordPos.z + tick, wFlex * 0.5f + rainStrength) * m;
+			// coordPos.y += 0.5f * wSin(coordPos.x - coordPos.z + tick, wFlex + rainStrength) * m;
 
 		}
 
 	} else if (mc_Entity.x == 10300) {
 
 		// Water
-		coordPos.y += 0.5f * wSin(coordPos.x + coordPos.z + tick, wFlex * 0.5f + rainStrength) * m;
-		coordPos.y += 0.5f * wSin(coordPos.x - coordPos.z + tick, wFlex + rainStrength) * m;
-		color += wSin(coordPos.x + coordPos.z + tick, wFlex * 0.5f + rainStrength) * m + wSin(coordPos.x - coordPos.z + tick, wFlex + rainStrength) * m;
+		coordPos.y += 0.4f * wSin(coordPos.x + tick, wFlex * 0.5f + rainStrength) * m;
+		coordPos.y += 0.6f * wSin(coordPos.x + 0.4f * coordPos.z + tick, wFlex + rainStrength) * m;
+		color += (fract(coordPos.y) - 0.87f) * 2.0f;
 
 	} else if (mc_Entity.x == 10251) {
 

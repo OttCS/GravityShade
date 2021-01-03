@@ -10,7 +10,6 @@ uniform sampler2D texture;
 
 uniform float rainStrength;
 uniform int worldTime;
-uniform int moonPhase;
 
 varying vec3 color;
 varying vec2 texcoord;
