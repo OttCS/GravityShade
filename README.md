@@ -19,3 +19,6 @@ Fixed Lantern waving to vary based on coordinates
 Fixed misalignment of water waves
 
 Removed sugarcane waving
+
+### 1.0.2 Bug Fixes:
+Fixed entity lighting to match environment
