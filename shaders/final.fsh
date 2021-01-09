@@ -6,12 +6,13 @@
 	Thanks for using GravityShade!
 */
 
-uniform sampler2D gcolor;
+uniform sampler2D colortex0;
 
 varying vec2 coord;
 
-void main() {
-	vec3 color = texture2D(gcolor, coord).rgb;
+const float sunPathRotation = -27.0;
 
+void main() {
+	vec3 color = texture2D(colortex0, coord).rgb;
 	gl_FragData[0] = vec4(color, 1.0f);
 }

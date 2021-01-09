@@ -8,7 +8,6 @@
 
 uniform sampler2D texture;
 
-varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 
@@ -17,7 +16,7 @@ varying vec2 texcoord;
 void main() {
 
 	// Texture Adjustments
-	vec3 texColor = texture2D(texture, texcoord).rgb * color.rgb;
+	vec3 texColor = 0.75f * texture2D(texture, texcoord).rgb; // Multiply by 0.75f for some crazy reason
 	texColor *= -0.5f * texColor + 1.5f; // Gravity10 Tonemap
 
 	gl_FragData[0] = vec4(texColor * trueLight(lmcoord), texture2D(texture, texcoord).a);

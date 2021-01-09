@@ -11,7 +11,7 @@ attribute vec4 mc_Entity;
 uniform float frameTimeCounter;
 uniform float rainStrength;
 
-varying vec4 lmcoord;
+varying vec2 lmcoord;
 varying vec3 binormal;
 varying vec3 normal;
 varying vec3 tangent;
@@ -33,65 +33,42 @@ void main() {
 
 	float tick = frameTimeCounter;
 
-	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).rgba;
+	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).rg;
 	
 	texcoord = gl_MultiTexCoord0.xy;
 	
 	vec4 coordPos = gl_Vertex;
 
 	color = gl_Color.rgb;
+	if (mc_Entity.x >= 10100 && mc_Entity.x <= 10300) {
 
-	if ((mc_Entity.x >= 10100 && mc_Entity.x <= 10109) || mc_Entity.x == 10300 || mc_Entity.x == 10251) {
-		if (mc_Entity.x < 10108) {
-	
-			if (mc_Entity.x < 10105) {
-
-				if (mc_Entity.x >= 10100 && mc_Entity.x <= 10102) {
-
-					// LOW plants and crops
- 					coordPos.xz += step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)) * wSin(coordPos.x + coordPos.z + tick, 0.5f * pFlex + rainStrength) * m;
-
-				} else {
-
-					// TALL plants
-					// Factor in 10103 as lower part and 10104 as upper part
-					coordPos.xz += max(step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)), 10104 - mc_Entity.x) * wSin(coordPos.x + coordPos.z + tick, 0.5f * pFlex + rainStrength) * m;
-
-				}
-
-			} else if (mc_Entity.x < 10107) {
-
-				// Leaves and vines
-				coordPos.xz += wSin(coordPos.y + coordPos.x + tick, lFlex + rainStrength) * m;
-				coordPos.y += wSin(1.2f * coordPos.x + coordPos.z + tick, lFlex + rainStrength) * m * 0.5f;
-
-			} else {
-
-				// Lily Pad
-				coordPos.xyz += 0.6f * wSin(tick + coordPos.x * 0.5f, wFlex + rainStrength) * m + 0.4f * wSin(2.0 * tick + coordPos.x + coordPos.z * 0.5f, wFlex + rainStrength) * m;
-
-			}
-
-		} else if (mc_Entity.x == 10300) {
-
-			// Water
-			float sum = 0.6f * wSin(tick + coordPos.x * 0.5f, wFlex + rainStrength) * m + 0.4f * wSin(2.0 * tick + coordPos.x + coordPos.z * 0.5f, wFlex + rainStrength) * m;
-			coordPos.y += sum;
-			color += sum * 1.8f;
-
+		if (mc_Entity.x == 10300) {
+		// Water
+		float sum = 0.6f * wSin(tick + coordPos.x * 0.5f, wFlex + rainStrength) * m + 0.4f * wSin(2.0 * tick + coordPos.x + coordPos.z * 0.5f, wFlex + rainStrength) * m;
+		coordPos.y += sum;
+		color += sum * 1.8f;
+		} else if (mc_Entity.x <= 10102) {
+			// Ground plants and crops
+			coordPos.xz += step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)) * wSin(coordPos.x + coordPos.z + tick, 0.5f * pFlex + rainStrength) * m;
+		} else if (mc_Entity.x <= 10104) {
+			// Tall plants
+			coordPos.xz += max(step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)), 10104 - mc_Entity.x) * wSin(coordPos.x + coordPos.z + tick, 0.5f * pFlex + rainStrength) * m;
+		} else if (mc_Entity.x <= 10106) {
+			// Leaves and vines
+			coordPos.xzy += wSin(coordPos.z + coordPos.x + tick, lFlex + rainStrength) * m;
+		} else if (mc_Entity.x == 10107) {
+			// Lily Pad
+			coordPos.xyz += 0.6f * wSin(tick + coordPos.x * 0.5f, wFlex + rainStrength) * m + 0.4f * wSin(2.0 * tick + coordPos.x + coordPos.z * 0.5f, wFlex + rainStrength) * m;
+		} else if (mc_Entity.x <= 10109) {
+			// Hardy Plants
+			coordPos.xz += step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)) * wSin(coordPos.y + coordPos.x + tick, hFlex + rainStrength) * m;
 		} else if (mc_Entity.x == 10251) {
-
 			// Soul Lantern and Normal Lantern
 			coordPos.x += (1.0f - fract(coordPos.y - 0.001f)) * wSin(3.0f * floor(coordPos.z) + tick, hFlex) * m * 2.0f;
 			coordPos.z += (1.0f - fract(coordPos.y - 0.001f)) * wSin(3.0f * floor(coordPos.x) + tick, hFlex * 0.73f) * m * 2.0f;
 			coordPos.y += (0.982f - cos(fract(coordPos.z) - 0.5f)) + (0.982f - cos(fract(coordPos.x) - 0.5f)) * 1.3f;
-
-		} else {
-
-			// Hardy Plants
-			coordPos.xz += step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)) * wSin(coordPos.y + coordPos.x + tick, hFlex + rainStrength) * m;
-
 		}
+		
 	}
 	
 	gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * coordPos);
