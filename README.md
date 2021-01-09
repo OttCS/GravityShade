@@ -22,3 +22,5 @@ Removed sugarcane waving
 
 ### 1.0.2 Bug Fixes:
 Fixed entity lighting to match environment
+
+Program optimizations
