@@ -18,12 +18,8 @@ vec3 trueLight(vec2 lmcoord, int d) {
 		trueLight *=  vec3(1.0f) - vec3(0.3f, 0.2f, 0.2f) * rainStrength; //Adjust coloring for rain
 		trueLight *= pow(lmcoord.g, Skylight_Falloff + rainStrength * lmcoord.g);
 	} else if (d == 1) { // Nether Lighting
-		trueLight = vec3(0.3f, 0.2f, 0.1f);
+		trueLight = vec3(0.2f, 0.1f, 0.0f);
 	}
     
 	return max(trueLight, vec3(1.7f, 1.3f, 1.0f) * pow(lmcoord.r, Blocklight_Falloff + rainStrength * lmcoord.g)) + 0.2f; // Mix with blocklight
 }
-
-// NOTES //
-
-// Don't use "lightmap" sampler: slow and lmcoord.rg can be exploited for the same result with more customisation

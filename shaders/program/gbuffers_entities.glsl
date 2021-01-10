@@ -7,17 +7,18 @@
 #ifdef FSH
 
 uniform sampler2D texture;
+uniform vec4 entityColor;
 
+varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 
 #include "/lib/light.glsl"
+#include "/lib/g10tm.glsl"
 
 void main() {
 
-	// Texture Adjustments
-	vec3 texColor = 0.75 * texture2D(texture, texcoord).rgb; // Multiply by 0.75f for some crazy reason
-	texColor *= -0.5f * texColor + 1.5f; // Gravity10 Tonemap
+	vec3 texColor = g10tm(0.75f * texture2D(texture, texcoord).rgb * color.rgb + entityColor.rgb);
 
 	int dimension = 0;
 	#ifdef NETHER
@@ -36,6 +37,7 @@ void main() {
 
 #ifdef VSH
 
+varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 
@@ -45,6 +47,7 @@ void main() {
 
 	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).rg;
 	texcoord = gl_MultiTexCoord0.xy;
+	color = gl_Color.rgb;
 	
 }
 

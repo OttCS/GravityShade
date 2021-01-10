@@ -13,12 +13,11 @@ varying vec2 lmcoord;
 varying vec2 texcoord;
 
 #include "/lib/light.glsl"
+#include "/lib/g10tm.glsl"
 
 void main() {
 
-	// Texture Adjustments
-	vec3 texColor = texture2D(texture, texcoord).rgb * color.rgb;
-	texColor *= -0.5f * texColor + 1.5f; // Gravity10 Tonemap
+	vec3 texColor = g10tm(texture2D(texture, texcoord).rgb * color.rgb);
 
 	int dimension = 0;
 	#ifdef NETHER
