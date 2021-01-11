@@ -5,5 +5,5 @@
 */
 
 vec3 g10tm(vec3 v3) {
-	return (-0.5f * v3 + 1.5f) * v3; // Gravity10 Tonemap
+	return (-0.5f * v3 + 1.5f) * v3;
 }

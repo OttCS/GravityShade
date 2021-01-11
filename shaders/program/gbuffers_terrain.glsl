@@ -12,8 +12,8 @@ varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 
-#include "/lib/light.glsl"
 #include "/lib/g10tm.glsl"
+#include "/lib/light.glsl"
 
 void main() {
 
@@ -74,9 +74,12 @@ void main() {
 
 		if (mc_Entity.x == 10300) {
 		// Water
-		float sum = 0.6f * wSin(tick + coordPos.x * 0.5f, wFlex + rainStrength) * m + 0.4f * wSin(2.0 * tick + coordPos.x + coordPos.z * 0.5f, wFlex + rainStrength) * m;
+		float sum = wSin(1.0f * tick + 2.0f * coordPos.x + 8.0f * coordPos.z, wFlex + rainStrength) * m;
+		sum += wSin(1.5f * tick + 4.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength) * m;
+		sum += wSin(2.0f * tick + 8.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength) * m;
+		sum *= 0.333f;
 		coordPos.y += sum;
-		color += sum * 1.8f;
+		color += sum * 4.0f;
 		} else if (mc_Entity.x <= 10102) {
 			// Ground plants and crops
 			coordPos.xz += step(-0.01f, -mod((texcoord.t) * 16.0f, 1.0f / 16.0f)) * wSin(coordPos.x + coordPos.z + tick, 0.5f * pFlex + rainStrength) * m;

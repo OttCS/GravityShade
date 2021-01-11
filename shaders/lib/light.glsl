@@ -23,3 +23,4 @@ vec3 trueLight(vec2 lmcoord, int d) {
     
 	return max(trueLight, vec3(1.7f, 1.3f, 1.0f) * pow(lmcoord.r, Blocklight_Falloff + rainStrength * lmcoord.g)) + 0.2f; // Mix with blocklight
 }
+

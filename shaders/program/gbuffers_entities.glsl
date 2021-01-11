@@ -13,8 +13,8 @@ varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
 
-#include "/lib/light.glsl"
 #include "/lib/g10tm.glsl"
+#include "/lib/light.glsl"
 
 void main() {
 

@@ -15,6 +15,7 @@ const float sunPathRotation = -27.0;
 #endif
 
 void main() {
+
 	vec3 color = texture2D(colortex0, coord).rgb;
 	gl_FragData[0] = vec4(color, 1.0f);
 }
