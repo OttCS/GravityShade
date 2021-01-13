@@ -4,11 +4,11 @@
 	Thanks for using GravityShade!
 */
 
+#define Blocklight_Falloff 2.5 //[2.0 2.5 3.0 3.5 4.0]
+#define Skylight_Falloff 2.0 //[2.0 2.5 3.0 3.5 4.0]
+
 uniform float rainStrength;
 uniform int worldTime;
-
-#define Blocklight_Falloff 1.5 //[1.0 1.5 2.0 2.5 3.0]
-#define Skylight_Falloff 1.0 //[1.0 1.5 2.0 2.5 3.0]
 
 vec3 trueLight(vec2 lmcoord, int d) {
 	vec3 trueLight = vec3(0.3f, 0.2f, 0.4f); // Default as End lighting

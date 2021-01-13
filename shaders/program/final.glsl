@@ -4,6 +4,8 @@
 	Thanks for using GravityShade!
 */
 
+#define GravityShade_Version Developer //[Developer]
+
 #ifdef FSH
 
 uniform sampler2D colortex0;
