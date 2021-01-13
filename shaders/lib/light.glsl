@@ -10,17 +10,25 @@
 uniform float rainStrength;
 uniform int worldTime;
 
-vec3 trueLight(vec2 lmcoord, int d) {
-	vec3 trueLight = vec3(0.3f, 0.2f, 0.4f); // Default as End lighting
+vec3 dColor(int d) {
+	vec3 trueLight = vec3(0.4f, 0.3f, 0.5f); // Default as End lighting
 
 	if (d == 0) { // Overworld Lighting
 		trueLight = mix(vec3(0.0f, 0.1f, 0.4f), vec3(1.1f, 1.0f, 1.0f), clamp(-(worldTime - 13000.0f) * (23000.0f - worldTime) / 11000000.0f, 0.0f, 1.0f)); //Night vs Day coloring
 		trueLight *=  vec3(1.0f) - vec3(0.3f, 0.2f, 0.2f) * rainStrength; //Adjust coloring for rain
-		trueLight *= pow(lmcoord.g, Skylight_Falloff + rainStrength * lmcoord.g);
 	} else if (d == 1) { // Nether Lighting
 		trueLight = vec3(0.2f, 0.1f, 0.0f);
 	}
+
+	return trueLight;
+}
+
+vec3 trueLight(vec2 lmcoord, int d) {
+	vec3 trueLight = dColor(d);
+
+	if (d == 0) // Overworld Lighting
+		trueLight *= pow(lmcoord.g, Skylight_Falloff + rainStrength * lmcoord.g);
     
-	return max(trueLight, vec3(1.7f, 1.3f, 1.0f) * pow(lmcoord.r, Blocklight_Falloff + rainStrength * lmcoord.g)) + 0.2f; // Mix with blocklight
+	return max(trueLight, vec3(1.9f, 1.4f, 1.1f) * pow(lmcoord.r, Blocklight_Falloff + rainStrength * lmcoord.g)) + 0.2f; // Mix with blocklight
 }
 

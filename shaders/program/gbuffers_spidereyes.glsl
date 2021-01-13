@@ -10,7 +10,7 @@ uniform sampler2D texture;
 
 varying vec2 texcoord;
 
-#include "/lib/g10tm.glsl"
+#include "/lib/functions.glsl"
 
 void main() {
 
