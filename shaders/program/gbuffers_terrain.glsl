@@ -8,6 +8,9 @@
 
 uniform sampler2D texture;
 
+uniform vec3 upPosition;
+
+varying vec3 normal;
 varying vec3 color;
 varying vec2 lmcoord;
 varying vec2 texcoord;
@@ -27,7 +30,9 @@ void main() {
 	dimension = 2;
 	#endif
 
-	gl_FragData[0] = vec4(texColor * trueLight(lmcoord, dimension), texture2D(texture, texcoord).a);
+	// float bounceLightCalc = clamp(dot(normal, upPosition), 0.0f, 0.03f) + 0.97f;
+
+	gl_FragData[0] = vec4(texColor * trueLight(lmcoord * vec2(1.0f, clamp(dot(normal, upPosition), 0.0f, 0.03f) + 0.97f), dimension), texture2D(texture, texcoord).a);
 }
 
 #endif
@@ -38,11 +43,11 @@ void main() {
 
 attribute vec4 mc_Entity;
 
-varying vec2 lmcoord;
 varying vec3 binormal;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 color;
+varying vec2 lmcoord;
 varying vec2 texcoord;
 
 #include "/lib/waving.glsl"
