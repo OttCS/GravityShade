@@ -13,6 +13,8 @@
 
 uniform sampler2D colortex0;
 
+uniform int isEyeInWater;
+
 #ifdef Fog
 uniform sampler2D depthtex0;
 uniform vec3 fogColor;
@@ -21,20 +23,23 @@ uniform vec3 fogColor;
 varying vec2 coord;
 
 #ifdef OVERWORLD
-const float sunPathRotation = -27.0;
+const float sunPathRotation = -20.0;
 #endif
 
 #ifdef Fog
 #include "/lib/functions.glsl"
-#include "/lib/light.glsl"
 #endif
+
+#include "/lib/light.glsl"
 
 void main() {
 
 	vec3 color = texture2D(colortex0, coord).rgb;
 
+	color *= inWaterColor(isEyeInWater);
+
 	#ifdef Fog
-	float depth = betterPow(texture2D(depthtex0, coord).r, 1000 * Fog_Start * (-0.5f * rainStrength + 1.0f));
+	float depth = betterPow(texture2D(depthtex0, coord).r, 1000 * Fog_Start * (-0.5f * rainStrength + 1.0f) * (-0.8f * step(1.0f, isEyeInWater) + 1.0f));
 
 	int dimension = 0;
 	#ifdef NETHER
@@ -45,7 +50,7 @@ void main() {
 	#endif
 
 	if (depth != 1.0f)
-		color = mix(color, mix(dColor(dimension), fogColor, depth), depth);
+		color = mix(color, mix(dColor(dimension) * inWaterColor(isEyeInWater), fogColor, depth), depth);
 	#endif
 
 	gl_FragData[0] = vec4(color, 1.0f);

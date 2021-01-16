@@ -30,9 +30,7 @@ void main() {
 	dimension = 2;
 	#endif
 
-	// float bounceLightCalc = clamp(dot(normal, upPosition), 0.0f, 0.03f) + 0.97f;
-
-	gl_FragData[0] = vec4(texColor * trueLight(lmcoord * vec2(1.0f, clamp(dot(normal, upPosition), 0.0f, 0.03f) + 0.97f), dimension), texture2D(texture, texcoord).a);
+	gl_FragData[0] = vec4(texColor * trueLight(lmcoord * vec2(1.0f, clamp(dot(normal, upPosition) * 0.5f + 0.5f, 0.0f, 1.0f) * 0.05f + 0.95f), dimension), texture2D(texture, texcoord).a);
 }
 
 #endif
