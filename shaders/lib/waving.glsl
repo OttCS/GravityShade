@@ -31,7 +31,8 @@ void lanternWave(inout vec3 coordPos) {
 }
 
 void leafWave(inout vec3 coordPos) {
-    coordPos.xzy += wSin(coordPos.z + coordPos.x + tick, lFlex + rainStrength) * m;
+	float sum = wSin(tick + coordPos.x - 2.0f * coordPos.z + coordPos.y, lFlex) * m + wSin(-tick + coordPos.y, lFlex);
+	coordPos.xyz += sum * 0.5f * m;
 }
 
 void lilyWave(inout vec3 coordPos) {
@@ -47,9 +48,8 @@ void tallPlantWave(inout vec3 coordPos) {
 }
 
 void waterWave(inout vec3 coordPos) {
-    float sum = wSin(1.0f * tick + 2.0f * coordPos.x + 8.0f * coordPos.z, wFlex + rainStrength) * m;
-	sum += wSin(1.5f * tick + 4.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength) * m;
-	sum += wSin(2.0f * tick + 8.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength) * m;
-	sum *= 0.333f;
-	coordPos.y += sum;
+    float sum = wSin(1.0f * tick + 2.0f * coordPos.x + 8.0f * coordPos.z, wFlex + rainStrength);
+	sum += wSin(1.5f * tick + 4.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength);
+	sum += wSin(2.0f * tick + 8.0f * coordPos.x + 2.0f * coordPos.z, wFlex + rainStrength);
+	coordPos.y += sum * 0.333f * m;
 }

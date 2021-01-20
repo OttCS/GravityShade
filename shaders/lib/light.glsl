@@ -15,12 +15,25 @@ vec3 inWaterColor(int x) {
 	vec3 color = vec3(1.0f);
 
 	if (x == 1) {
-		color *= vec3(0.3f, 0.9f, 0.7f);
+		color *= vec3(0.4f, 0.8f, 1.0f);
 	} else if (x == 2) {
-		color *= vec3(0.9f, 0.7f, 0.3f);
+		color *= vec3(1.0f, 0.6f, 0.2f);
 	}
 
 	return color;
+}
+
+vec3 fColor(int d) {
+	vec3 trueLight = vec3(0.5f, 0.4f, 0.6f); // Default as End lighting
+
+	if (d == 0) { // Overworld Lighting
+		trueLight = mix(vec3(0.2f, 0.3f, 0.6f), vec3(1.1f, 1.0f, 1.0f), clamp(-(worldTime - 13000.0f) * (23000.0f - worldTime) / 11000000.0f, 0.0f, 1.0f)); //Night vs Day coloring
+		trueLight *=  vec3(1.0f) - vec3(0.3f, 0.2f, 0.2f) * rainStrength; //Adjust coloring for rain
+	} else if (d == 1) { // Nether Lighting
+		trueLight = vec3(0.8f, 0.6f, 0.4f);
+	}
+
+	return trueLight;
 }
 
 vec3 dColor(int d) {

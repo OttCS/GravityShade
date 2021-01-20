@@ -9,7 +9,8 @@
 #ifdef FSH
 
 #define Fog
-#define Fog_Start 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
+#define Fog_Start 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define Water_Fog_Start 0.2 //[0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 uniform sampler2D colortex0;
 
@@ -23,23 +24,18 @@ uniform vec3 fogColor;
 varying vec2 coord;
 
 #ifdef OVERWORLD
-const float sunPathRotation = -20.0;
+const float sunPathRotation = -40.0;
 #endif
 
-#ifdef Fog
 #include "/lib/functions.glsl"
-#endif
-
 #include "/lib/light.glsl"
 
 void main() {
 
-	vec3 color = texture2D(colortex0, coord).rgb;
-
-	color *= inWaterColor(isEyeInWater);
+	vec3 color = texture2D(colortex0, coord).rgb * inWaterColor(isEyeInWater);
 
 	#ifdef Fog
-	float depth = betterPow(texture2D(depthtex0, coord).r, 1000 * Fog_Start * (-0.5f * rainStrength + 1.0f) * (-0.8f * step(1.0f, isEyeInWater) + 1.0f));
+	float depth = betterPow(texture2D(depthtex0, coord).r, 1200.0f * mix(Fog_Start, Water_Fog_Start, step(1.0f, isEyeInWater)));
 
 	int dimension = 0;
 	#ifdef NETHER
@@ -49,8 +45,9 @@ void main() {
 	dimension = 2;
 	#endif
 
-	if (depth != 1.0f)
-		color = mix(color, mix(dColor(dimension) * inWaterColor(isEyeInWater), fogColor, depth), depth);
+	if (depth != 1.0f) // Do not include sky
+		color = mix(color, fColor(dimension) * (0.5f + 0.5f * fogColor), depth);
+		
 	#endif
 
 	gl_FragData[0] = vec4(color, 1.0f);
