@@ -2,7 +2,7 @@
 	GravityShade by Gravity10
 	Code is licensed under GNU Lesser General Public License v2.1
 	Thanks for using GravityShade!
-*/
+*/ 
 
 #define Blocklight_Falloff 2.5 //[2.0 2.5 3.0 3.5 4.0]
 #define Skylight_Falloff 2.0 //[2.0 2.5 3.0 3.5 4.0]
@@ -21,7 +21,7 @@ vec3 inWaterColor(int x) {
 	}
 
 	return color;
-}
+} 
 
 vec3 fColor(int d) {
 	vec3 trueLight = vec3(0.5f, 0.4f, 0.6f); // Default as End lighting

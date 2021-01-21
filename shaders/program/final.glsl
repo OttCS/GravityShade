@@ -17,7 +17,7 @@ uniform sampler2D colortex0;
 uniform int isEyeInWater;
 
 #ifdef Fog
-uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 uniform vec3 fogColor;
 #endif
 
@@ -35,7 +35,7 @@ void main() {
 	vec3 color = texture2D(colortex0, coord).rgb * inWaterColor(isEyeInWater);
 
 	#ifdef Fog
-	float depth = betterPow(texture2D(depthtex0, coord).r, 1200.0f * mix(Fog_Start, Water_Fog_Start, step(1.0f, isEyeInWater)));
+	float depth = betterPow(texture2D(depthtex1, coord).r, 1200.0f * mix(Fog_Start, Water_Fog_Start, step(1.0f, isEyeInWater)));
 
 	int dimension = 0;
 	#ifdef NETHER

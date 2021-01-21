@@ -11,7 +11,7 @@ const float wFlex = 2.2f; // Water flexing frequency
 const float lFlex = 1.4f; // Leaves flexing frequency
 const float pFlex = 1.8f; // Plants flexing frequency
 const float hFlex = 1.2f; // Hardy plants flexing frequency
-const float m = 0.05f; // Magnitude
+const float m = 0.03f; // Magnitude
 
 float tick = 2.0f * frameTimeCounter;
 
