@@ -34,6 +34,7 @@ varying vec3 vworldpos;
 varying mat3 tbnMatrix;
 varying vec2 texcoord;
 varying vec2 lmcoord;
+varying float mcID;
 varying float iswater;
 varying float mat;
 
@@ -86,38 +87,30 @@ vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
 	
 	NdotL = clamp(dot(norm, normalize(shadowLightPosition))*1.02-0.02,0.0,1.0);	
 	float bias = distortion*distortion*(0.0046*tan(acos(NdotL)));
-	
-	//Certain things shouldn't be diffused, also adjust bias for cheap self shadowing fix
-	if (mc_Entity.x == ENTITY_SMALLGRASS
-	|| mc_Entity.x == ENTITY_LOWERGRASS
-	|| mc_Entity.x == ENTITY_UPPERGRASS
-	|| mc_Entity.x == ENTITY_SMALLENTS
-	|| mc_Entity.x == ENTITY_LEAVES
-	|| mc_Entity.x == ENTITY_VINES
-	|| mc_Entity.x == ENTITY_LILYPAD
-	|| mc_Entity.x == ENTITY_FIRE
-	|| mc_Entity.x == ENTITY_WAVING_LANTERN	
-	|| mc_Entity.x == ENTITY_EMISSIVE	
-	|| mc_Entity.x == 10030.0	//cobweb	
-	|| mc_Entity.x == 10115.0 //nether wart
-	|| mc_Entity.x == 10576.0 //spore blossom	
-	|| mc_Entity.x == 10006.0) {
+
+	if (mcID == ENTITY_SMALLGRASS
+	|| mcID == ENTITY_LOWERGRASS
+	|| mcID == ENTITY_UPPERGRASS
+	|| mcID == ENTITY_SMALLENTS
+	|| mcID == ENTITY_LEAVES
+	|| mcID == ENTITY_VINES
+	|| mcID == ENTITY_LILYPAD
+	|| mcID == ENTITY_FIRE
+	|| mcID == ENTITY_WAVING_LANTERN	
+	|| mcID == ENTITY_EMISSIVE	
+	|| mcID == 10030.0	//cobweb	
+	|| mcID == 10115.0 //nether wart
+	|| mcID == 10576.0 //spore blossom	
+	|| mcID == 10006.0) {
 		NdotL = 0.75;
 		bias = 0.0010;
 	}
+	
 	shadowpos.xyz = shadowpos.xyz * 0.5 + 0.5;
 	shadowpos.z -= bias;
 
 	return shadowpos.xyz;
 }
-#endif
-
-#if nMap == 2
-varying float dist;
-varying vec3 viewVector;
-varying vec4 vtexcoordam; // .st for add, .pq for mul
-varying vec2 vtexcoord;
-varying float isblock; 	//mc_Entity.x, hack to only apply pom to blocks
 #endif
 
 #ifdef TAA
@@ -137,6 +130,8 @@ const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 
 void main() {
 
+	mcID = mc_Entity.x;
+
 	//Positioning
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
@@ -146,7 +141,7 @@ void main() {
 	bool istopv = gl_MultiTexCoord0.t < mc_midTexCoord.t;
 
 #ifdef Waving_Tallgrass
-if (mc_Entity.x == ENTITY_LOWERGRASS && istopv || mc_Entity.x == ENTITY_UPPERGRASS)
+if (mcID == ENTITY_LOWERGRASS && istopv || mcID == ENTITY_UPPERGRASS)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0041,
 			0.0070,
@@ -160,7 +155,7 @@ if (mc_Entity.x == ENTITY_LOWERGRASS && istopv || mc_Entity.x == ENTITY_UPPERGRA
 #endif
 if (istopv) {
 #ifdef Waving_Grass
-	if ( mc_Entity.x == ENTITY_SMALLGRASS)
+	if ( mcID == ENTITY_SMALLGRASS)
 			position.xyz += calcMove(vworldpos.xyz,
 				0.0041,
 				0.0070,
@@ -172,7 +167,7 @@ if (istopv) {
 				vec3(0.0,0.0,0.0));
 #endif
 #ifdef Waving_Entities
-	if (mc_Entity.x == ENTITY_SMALLENTS)
+	if (mcID == ENTITY_SMALLENTS)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0041,
 			0.0070,
@@ -184,7 +179,7 @@ if (istopv) {
 			vec3(0.4,0.0,0.4));
 #endif
 #ifdef Waving_Fire
-	if ( mc_Entity.x == ENTITY_FIRE)
+	if ( mcID == ENTITY_FIRE)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0105,
 			0.0096,
@@ -198,7 +193,7 @@ if (istopv) {
 }
 
 #ifdef Waving_Leaves
-	if ( mc_Entity.x == ENTITY_LEAVES)
+	if ( mcID == ENTITY_LEAVES)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0040,
 			0.0064,
@@ -210,7 +205,7 @@ if (istopv) {
 			vec3(0.5,0.1,0.5));
 #endif
 #ifdef Waving_Vines
-	if ( mc_Entity.x == ENTITY_VINES)
+	if ( mcID == ENTITY_VINES)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0040,
 			0.0064,
@@ -221,7 +216,7 @@ if (istopv) {
 			vec3(0.5,1.0,0.5),
 			vec3(0.25,0.5,0.25));
 
-	if (mc_Entity.x == ENTITY_INVERTED_LOWER && gl_MultiTexCoord0.t > mc_midTexCoord.t)
+	if (mcID == ENTITY_INVERTED_LOWER && gl_MultiTexCoord0.t > mc_midTexCoord.t)
 			position.xyz += calcMove(vworldpos.xyz,
 			0.0041,
 			0.0070,
@@ -233,7 +228,7 @@ if (istopv) {
 			vec3(0.4,0.0,0.4));				
 #endif
 #ifdef Waving_Lava
-	if(mc_Entity.x == ENTITY_LAVA){
+	if(mcID == ENTITY_LAVA){
 		float fy = fract(vworldpos.y + 0.001);
 		float wave = 0.05 * sin(2 * PI * (frameTimeCounter*0.2 + vworldpos.x /  7.0 + vworldpos.z / 13.0))
 				   + 0.05 * sin(2 * PI * (frameTimeCounter*0.15 + vworldpos.x / 11.0 + vworldpos.z /  5.0));
@@ -241,9 +236,9 @@ if (istopv) {
 	}
 #endif
 	iswater = 0.0;
-	if(mc_Entity.x == ENTITY_WATER)iswater = 0.95;	//don't fully remove shadows on water plane
+	if(mcID == ENTITY_WATER)iswater = 0.95;	//don't fully remove shadows on water plane
 #ifdef Waving_Water
-	if(mc_Entity.x == ENTITY_WATER || mc_Entity.x == ENTITY_LILYPAD) { //water, lilypads
+	if(mcID == ENTITY_WATER || mcID == ENTITY_LILYPAD) { //water, lilypads
 		float fy = fract(vworldpos.y + 0.001);
 		float wave = 0.05 * sin(2 * PI * (frameTimeCounter*0.8 + vworldpos.x /  2.5 + vworldpos.z / 5.0))
 				   + 0.05 * sin(2 * PI * (frameTimeCounter*0.6 + vworldpos.x / 6.0 + vworldpos.z /  12.0));
@@ -252,7 +247,7 @@ if (istopv) {
 #endif
 
 #ifdef Waving_Lanterns
-	if(mc_Entity.x == ENTITY_WAVING_LANTERN){
+	if(mcID == ENTITY_WAVING_LANTERN){
 		vec3 fxyz = fract(vworldpos.xyz + 0.001);
 		float wave = 0.025 * sin(2 * PI * (frameTimeCounter*0.4 + vworldpos.x * 0.5 + vworldpos.z * 0.5));
 					//+ 0.025 * sin(2 * PI * (frameTimeCounter*0.4 + worldpos.y *0.25 + worldpos.z *0.25));
@@ -264,9 +259,9 @@ if (istopv) {
 #endif
 
 mat = 0.0;
-	if(mc_Entity.x == ENTITY_WATER)mat = 1.0;
-	if(mc_Entity.x == ENTITY_ICE)mat = 2.0; //various ids are mapped to ice in block.properties
-	if(mc_Entity.x == ENTITY_MIRROR)mat = 3.0; //various mirrored blocks mapped to iron in block.properties
+	if(mcID == ENTITY_WATER)mat = 1.0;
+	if(mcID == ENTITY_ICE)mat = 2.0; //various ids are mapped to ice in block.properties
+	if(mcID == ENTITY_MIRROR)mat = 3.0; //various mirrored blocks mapped to iron in block.properties
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
 
 	//Fog
@@ -275,7 +270,7 @@ mat = 0.0;
 	color = gl_Color;
 
 	//Fix colors on emissive blocks
-	if(mc_Entity.x == ENTITY_EMISSIVE || mc_Entity.x == ENTITY_LAVA || mc_Entity.x == ENTITY_FIRE ||  mc_Entity.x == ENTITY_WAVING_LANTERN || mc_Entity.x == 10300.0)color = vec4(1.0);
+	if(mcID == ENTITY_EMISSIVE || mcID == ENTITY_LAVA || mcID == ENTITY_FIRE ||  mcID == ENTITY_WAVING_LANTERN || mcID == 10300.0)color = vec4(1.0);
 
 	//Bump & Parallax mapping
 	vec3 normal = normalize(gl_NormalMatrix * gl_Normal);	

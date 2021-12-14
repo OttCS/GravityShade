@@ -3,6 +3,8 @@
     Made by Gravity10, Code base by Sildur.
 */
 
+#extension GL_EXT_gpu_shader4 : enable
+
 #define customLight                       //Toggle custom light support for emissive blocks.
 #define emissive_R 2.8                      //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 #define emissive_G 1.6                      //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
@@ -27,30 +29,6 @@
     //#define draw_refnormals					//Draw reflection normals, actually composite normals but only reflections are stored in the buffer.
 #endif
 
-#ifdef composite1
-    //#define TAA                               //Toggle temporal anti-aliasing (TAA)
-    #define TAA_quality	2                       //[1 2] Fast is more blurry during movement compared to fancy.
-
-    //#define Adaptive_sharpening                 //Toggle adaptive sharpening. Recommended to use with TAA. Disabling TAA also disables adaptive sharpening.
-    #define AS_sharpening 2.0                   //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0] Adjust sharpening strength.
-#endif
-
-#ifdef final
-    //#define Crossprocess                      //It's like a color filter, alters all colors abit if enabled.	
-
-    //#define Depth_of_Field                    //Simulates eye focusing on objects. Low performance impact
-	//#define Distance_Blur                     //Requires Depth of Field to be enabled. Replaces eye focusing effect with distance being blurred instead.
-        #define smoothDof                       //Toggle smooth transition between clear and blurry.
-	    #define DoF_Strength 90                 //[60 90 120 150]
-	    #define Dof_Distance_View 256           //[128 256 384 512]
-	
-    //#define Motionblur                        //Blurres your view/camera during movemenent. Low performance impact. Doesn't work with Depth of Field.
-	    #define MB_strength 0.014               //[0.008 0.014 0.020]
-
-    #define Tonemap                           //Toggle tonemapping, slightly altering colors / color balance. Based of vibrant shaders, which uses uncharted2tonemap.
-        #define gamma 2.2                       //Adjust gamma used by tonemapping. [1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
-#endif
-
 #ifdef gbuffers_clouds
     #define Fog		                            //Toggle default fog.
 #endif
@@ -60,7 +38,7 @@
 
     #define MobsFlashRed
 
-    //#define Fog                                 //Toggle default fog.
+    #define Fog                                 //Toggle default fog.
 
     #define Reflections                         //Toggle reflections, also adjust in composite.fsh
         #define WaterReflection
@@ -71,13 +49,13 @@
     #define Colored_Shadows
     #define slight 0.55                         //[0.50 0.55 0.60 0.65 0.70 0.75 0.80]
     #define SHADOW_MAP_BIAS 0.80
-    const int 	shadowMapResolution = 1024;		//Shadows resolution. [512 1024 2048 3072 4096 8192]
-    const float shadowDistance = 90.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
-    const float shadowDistanceRenderMul = 1.0f;
+    const int 	shadowMapResolution = 2048;		//Shadows resolution. [1024 2048 3072 4096 8192]
+    const float shadowDistance = 120.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
+    const float shadowDistanceRenderMul = 1.0;
     const bool 	shadowHardwareFiltering0 = true;
     const bool 	shadowHardwareFiltering1 = true;
     #endif
-    const float	sunPathRotation	= -22.0f;		//[-10.0 -20.0 -30.0 -40.0f -50.0 -60.0 -70.0 -80.0 -0.15f -0.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0]
+    const float	sunPathRotation	= -22.0;		//[-10.0 -20.0 -30.0 -40.0f -50.0 -60.0 -70.0 -80.0 -0.15f -0.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0]
 
     //#define waterTex                            //Toggle water texture
 

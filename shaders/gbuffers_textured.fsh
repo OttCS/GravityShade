@@ -20,12 +20,15 @@ const int compositeFormat = RGBA8;
 -----------------------------------------*/
 
 varying vec4 color;
+varying vec3 position;
 varying vec3 vworldpos;
 varying mat3 tbnMatrix;
 varying vec2 texcoord;
 varying vec2 lmcoord;
+varying float mcID;
 varying float iswater;
 varying float mat;
+
 uniform sampler2D normals;
 uniform sampler2D texture;
 uniform sampler2D lightmap;
@@ -38,7 +41,6 @@ uniform vec3 shadowLightPosition;
 uniform int worldTime;
 
 uniform vec3 fogColor;
-uniform vec3 skyColor;
 
 #ifdef Fog
 const int GL_LINEAR = 9729;
@@ -159,7 +161,7 @@ vec3 getOverworldSkyLighting (int tick) {
 	vec3 rise = vec3(1.0, 0.7, 0.4);
 	vec3 noon = vec3(1.2, 1.1, 1.0);
 	vec3 set = vec3(1.0, 0.4, 0.7);
-	vec3 night = vec3(0.2, 0.4, 0.4);
+	vec3 night = vec3(0.2, 0.3, 0.4);
 
 	vec3 res = night;
 
@@ -174,26 +176,37 @@ vec3 getOverworldSkyLighting (int tick) {
 	return res * mix(vec3(1.0), vec3(0.6, 0.8, 0.7), rainStrength);
 }
 
+bool isOverworld () {
+	#ifdef END
+		return false;
+	#endif
+	#ifdef NETHER
+		return false;
+	#endif
+	return true;
+}
+
 void main() {
 
 	//Mix default MC skylight with custom emissive light
 	vec4 tex = texture2D(texture, texcoord.st) * color;
 
-	vec3 skyLight = vec3(0.0);
+	vec3 skyLight = vec3(1.0);
 	vec3 ambLight = vec3(0.2);
 
-	#ifndef NETHER
+	if (isOverworld()) {
+		skyLight = getOverworldSkyLighting((worldTime + 1450) % 24000); // Overworld
+	} else {
 		#ifdef END
-			ambLight = vec3(0.8, 0.7, 0.8);
+			ambLight = vec3(0.8, 0.7, 0.8); // End
 		#else
-			skyLight = getOverworldSkyLighting((worldTime + 1450) % 24000);
+			ambLight = fogColor * 0.4 + 0.6; // Nether
 		#endif
-	#else
-		ambLight = fogColor * 0.5 + vec3(0.6);
-	#endif
-
+	}
+	
 	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), vec3(emissive_R * pow(lmcoord.x, emissive_R),emissive_G * pow(lmcoord.x, emissive_G),emissive_B * pow(lmcoord.x, emissive_B))*lmcoord.x-0.5/16.0);
 	tex.rgb *= lightComp;
+
 
 	vec4 normal = vec4(0.0); //fill the buffer with 0.0 if not needed, improves performance
 
@@ -210,23 +223,19 @@ tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a);
 #endif
 
 if(iswater > 0.1){
-	if(isEyeInWater > 0.9)tex.a = 0.9;	//improve alpha underwater, default is 1 (opaque)
-	tex.rgb = vec3(0.06, 0.12, 0.24) * lightComp + 0.1 * ambLight;
+	if(isEyeInWater > 0) {
+		tex.a = 0.4;
+	}
+	tex.rgb = vec3(0.08, 0.16, 0.32) * lightComp + 0.2;
 }
 
 	//Fix lightning bolts
-	if(entityId == 11000.0) tex = texture2D(lightmap, lmcoord.xy)*color;
+	if(entityId == 11000) tex = vec4(vec3(1.0), 0.5);
+	
+#ifdef Fog
+	tex.rgb = mix(tex.rgb, gl_Fog.color.rgb, pow(clamp((gl_FogFragCoord - gl_Fog.start) * gl_Fog.scale, 0.0, 1.0), 4.0));
+#endif
 
 	gl_FragData[0] = tex;
 	gl_FragData[1] = encode(normal.xyz);
-	
-#ifdef Fog
-	if (fogMode == GL_EXP) {
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, 1.0 - clamp(exp(-gl_Fog.density * gl_FogFragCoord), 0.0, 1.0));
-	} else if (fogMode == GL_LINEAR) {
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, clamp((gl_FogFragCoord - gl_Fog.start) * gl_Fog.scale, 0.0, 1.0));
-	} else if (isEyeInWater == 1.0 || isEyeInWater == 2.0){
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, 1.0 - clamp(exp(-gl_Fog.density * gl_FogFragCoord), 0.0, 1.0));
-	}
-#endif
 }
