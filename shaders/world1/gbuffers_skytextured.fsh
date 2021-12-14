@@ -4,4 +4,4 @@
 */
 
 #define END
-#include "/final.fsh"
+#include "/gbuffers_skytextured.fsh"

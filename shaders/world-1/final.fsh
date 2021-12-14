@@ -1,12 +1,7 @@
-#version 120
-
 /*
-	GravityShade by Gravity10
-	Code is licensed under GNU Lesser General Public License v2.1
-	Thanks for using GravityShade!
+    GravityShade for the IRIS Shaders mod.
+    Made by Gravity10, Code base by Sildur.
 */
 
 #define NETHER
-#define FSH
-
-#include "/program/final.glsl"
+#include "/final.fsh"
