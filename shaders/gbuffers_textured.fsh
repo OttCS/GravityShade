@@ -192,7 +192,7 @@ void main() {
 	vec4 tex = texture2D(texture, texcoord.st) * color;
 
 	vec3 skyLight = vec3(1.0);
-	vec3 ambLight = vec3(0.2);
+	vec3 ambLight = vec3(0.3);
 
 	if (isOverworld()) {
 		skyLight = getOverworldSkyLighting((worldTime + 1450) % 24000); // Overworld
@@ -205,6 +205,20 @@ void main() {
 	}
 	
 	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), vec3(emissive_R * pow(lmcoord.x, emissive_R),emissive_G * pow(lmcoord.x, emissive_G),emissive_B * pow(lmcoord.x, emissive_B))*lmcoord.x-0.5/16.0);
+	
+	float rID = round(mcID);
+
+	if (rID == 10089.0 || rID == 10090.0) { // Emissive Blocks
+		lightComp = vec3(lmcoord.x);
+		tex.rgb *= tex.rgb + 0.5;
+	} else if (rID == 10566.0) { // Emissive Ores
+		float minVal = min(tex.r, min(tex.g, tex.b));
+		float maxVal = max(tex.r, max(tex.g, tex.b));
+		if (maxVal - minVal > 0.18) {
+			lightComp = max(lightComp, vec3(1.4));
+		}
+	}
+	
 	tex.rgb *= lightComp;
 
 
@@ -226,14 +240,14 @@ if(iswater > 0.1){
 	if(isEyeInWater > 0) {
 		tex.a = 0.4;
 	}
-	tex.rgb = vec3(0.08, 0.16, 0.32) * lightComp + 0.2;
+	tex.rgb = vec3(0.04, 0.08, 0.16) * (lightComp + 0.2);
 }
 
 	//Fix lightning bolts
 	if(entityId == 11000) tex = vec4(vec3(1.0), 0.5);
 	
 #ifdef Fog
-	tex.rgb = mix(tex.rgb, gl_Fog.color.rgb, pow(clamp((gl_FogFragCoord - gl_Fog.start) * gl_Fog.scale, 0.0, 1.0), 4.0));
+	tex.rgb = mix(tex.rgb, gl_Fog.color.rgb, clamp((gl_FogFragCoord - gl_Fog.start * 0.2) * 0.01, 0.0, 1.0));
 #endif
 
 	gl_FragData[0] = tex;
