@@ -42,71 +42,6 @@ vec3 screenSpace(vec2 coord, float depth){
 	return pos.xyz/pos.w;
 }
 
-#ifdef SSAO
-uniform float aspectRatio;
-const vec2 check_offsets[25] = vec2[25](vec2(-0.4894566f,-0.3586783f),
-									vec2(-0.1717194f,0.6272162f),
-									vec2(-0.4709477f,-0.01774091f),
-									vec2(-0.9910634f,0.03831699f),
-									vec2(-0.2101292f,0.2034733f),
-									vec2(-0.7889516f,-0.5671548f),
-									vec2(-0.1037751f,-0.1583221f),
-									vec2(-0.5728408f,0.3416965f),
-									vec2(-0.1863332f,0.5697952f),
-									vec2(0.3561834f,0.007138769f),
-									vec2(0.2868255f,-0.5463203f),
-									vec2(-0.4640967f,-0.8804076f),
-									vec2(0.1969438f,0.6236954f),
-									vec2(0.6999109f,0.6357007f),
-									vec2(-0.3462536f,0.8966291f),
-									vec2(0.172607f,0.2832828f),
-									vec2(0.4149241f,0.8816f),
-									vec2(0.136898f,-0.9716249f),
-									vec2(-0.6272043f,0.6721309f),
-									vec2(-0.8974028f,0.4271871f),
-									vec2(0.5551881f,0.324069f),
-									vec2(0.9487136f,0.2605085f),
-									vec2(0.7140148f,-0.312601f),
-									vec2(0.0440252f,0.9363738f),
-									vec2(0.620311f,-0.6673451f)
-									);
-
-vec3 toScreenSpace(vec3 pos) {
-	vec4 iProjDiag = vec4(gbufferProjectionInverse[0].x, gbufferProjectionInverse[1].y, gbufferProjectionInverse[2].zw);
-	vec3 p3 = pos * 2.0 - 1.0;
-    vec4 fragposition = iProjDiag * p3.xyzz + gbufferProjectionInverse[3];
-    return fragposition.xyz / fragposition.w;
-}
-
-//modified version of Yuriy O'Donnell's SSDO (License MIT -> https://github.com/kayru/dssdo)
-float calcSSDO(vec3 fragpos, vec3 normal){
-	float finalAO = 0.0;
-	float radius = 0.05 / (fragpos.z);
-	const float attenuation_angle_threshold = 0.1;
-	const int num_samples = 16;	
-	const float ao_weight = 1.0;
-
-	for( int i=0; i<num_samples; ++i ){
-	    vec2 texOffset = pow(length(check_offsets[i].xy),0.5)*radius*vec2(1.0,aspectRatio)*normalize(check_offsets[i].xy);
-		vec2 newTC = texcoord+texOffset;
-
-		vec3 t0 = toScreenSpace(vec3(newTC, texture2D(depthtex1, newTC).x));
-
-		vec3 center_to_sample = t0.xyz - fragpos.xyz;
-
-		float dist = length(center_to_sample);
-
-		vec3 center_to_sample_normalized = center_to_sample / dist;
-		float attenuation = 1.0-clamp(dist/6.0,0.0,1.0);
-		float dp = dot(normal, center_to_sample_normalized);
-
-		attenuation = sqrt(max(dp,0.0))*attenuation*attenuation * step(attenuation_angle_threshold, dp);
-		finalAO += attenuation * (ao_weight / num_samples);
-	}
-	return finalAO;
-}
-#endif
-
 #ifdef Reflections
 uniform mat4 gbufferProjection;
 uniform ivec2 eyeBrightnessSmooth;
@@ -194,36 +129,6 @@ vec2 calcBump(vec2 coord){
 	float yDelta = 2.0 * ((h3-h0)+(h0-h4));
 
 	return vec2(xDelta,yDelta)*0.04;
-}
-#endif
-
-#ifdef Celshading
-float pw = 1.0/ viewWidth;
-float ph = 1.0/ viewHeight;
-float getdepth(vec2 coord) {
-	return texture2D(depthtex1,coord).x;
-}
-vec3 celshade(vec3 c) {
-	//edge detect
-	float dtresh = 1/(far-near)* 0.0005;
-	vec4 dc = vec4(getdepth(texcoord.xy));
-
-	vec4 sa = vec4(getdepth(texcoord.xy + vec2(-pw,-ph)),
-				   getdepth(texcoord.xy + vec2(pw,-ph)),
-				   getdepth(texcoord.xy + vec2(-pw,0.0)),
-				   getdepth(texcoord.xy + vec2(0.0,ph)));
-	
-	//opposite side samples
-	vec4 sb = vec4(getdepth(texcoord.xy + vec2(pw,ph)),
-				   getdepth(texcoord.xy + vec2(-pw,ph)),
-				   getdepth(texcoord.xy + vec2(pw,0.0)),
-				   getdepth(texcoord.xy + vec2(0.0,-ph)));
-
-	vec4 dd = abs(2.0* dc - sa - sb) - dtresh;
-		 dd = step(dd.xyzw, vec4(0.0));
-
-	float e = clamp(dot(dd,vec4(0.25f)),0.0,1.0);
-	return c*e;
 }
 #endif
 

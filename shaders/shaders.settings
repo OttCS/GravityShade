@@ -49,13 +49,13 @@
     #define Colored_Shadows
     #define slight 0.55                         //[0.50 0.55 0.60 0.65 0.70 0.75 0.80]
     #define SHADOW_MAP_BIAS 0.80
-    const int 	shadowMapResolution = 2048;		//Shadows resolution. [1024 2048 3072 4096 8192]
-    const float shadowDistance = 120.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
+    const int 	shadowMapResolution = 1024;		//Shadows resolution. [1024 2048 3072 4096 8192]
+    const float shadowDistance = 64.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
     const float shadowDistanceRenderMul = 1.0;
     const bool 	shadowHardwareFiltering0 = true;
     const bool 	shadowHardwareFiltering1 = true;
     #endif
-    const float	sunPathRotation	= -22.0;		//[-10.0 -20.0 -30.0 -40.0f -50.0 -60.0 -70.0 -80.0 -0.15f -0.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0]
+    const float	sunPathRotation	= -40.0;		//[-10.0 -20.0 -30.0 -40.0f -50.0 -60.0 -70.0 -80.0 -0.15f -0.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0]
 
     //#define waterTex                            //Toggle water texture
 
