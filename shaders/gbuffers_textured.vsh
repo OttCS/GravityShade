@@ -113,21 +113,6 @@ vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
 }
 #endif
 
-#ifdef TAA
-uniform float viewWidth;
-uniform float viewHeight;
-vec2 texelSize = vec2(1.0/viewWidth,1.0/viewHeight);
-uniform int framemod8;
-const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
-								vec2(-1.,3.)/8.,
-								vec2(5.0,1.)/8.,
-								vec2(-3,-5.)/8.,
-								vec2(-5.,5.)/8.,
-								vec2(-7.,-1.)/8.,
-								vec2(3,7.)/8.,
-								vec2(7.,-7.)/8.);
-#endif
-
 void main() {
 
 	mcID = mc_Entity.x;
@@ -178,18 +163,6 @@ if (istopv) {
 			vec3(0.8,0.0,0.8),
 			vec3(0.4,0.0,0.4));
 #endif
-#ifdef Waving_Fire
-	if ( mcID == ENTITY_FIRE)
-			position.xyz += calcMove(vworldpos.xyz,
-			0.0105,
-			0.0096,
-			0.0087,
-			0.0063,
-			0.0097,
-			0.0156,
-			vec3(1.2,0.4,1.2),
-			vec3(0.8,0.8,0.8));
-#endif
 }
 
 #ifdef Waving_Leaves
@@ -227,14 +200,6 @@ if (istopv) {
 			vec3(0.8,0.0,0.8),
 			vec3(0.4,0.0,0.4));				
 #endif
-#ifdef Waving_Lava
-	if(mcID == ENTITY_LAVA){
-		float fy = fract(vworldpos.y + 0.001);
-		float wave = 0.05 * sin(2 * PI * (frameTimeCounter*0.2 + vworldpos.x /  7.0 + vworldpos.z / 13.0))
-				   + 0.05 * sin(2 * PI * (frameTimeCounter*0.15 + vworldpos.x / 11.0 + vworldpos.z /  5.0));
-		position.y += clamp(wave, -fy, 1.0-fy)*0.5;
-	}
-#endif
 	iswater = 0.0;
 	if(mcID == ENTITY_WATER)iswater = 0.95;	//don't fully remove shadows on water plane
 #ifdef Waving_Water
@@ -261,7 +226,6 @@ if (istopv) {
 mat = 0.0;
 	if(mcID == ENTITY_WATER)mat = 1.0;
 	if(mcID == ENTITY_ICE)mat = 2.0; //various ids are mapped to ice in block.properties
-	if(mcID == ENTITY_MIRROR)mat = 3.0; //various mirrored blocks mapped to iron in block.properties
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
 
 	//Fog

@@ -8,20 +8,27 @@
 
 varying vec4 color;
 
-uniform int isEyeInWater;
-const int GL_LINEAR = 9729;
-const int GL_EXP = 2048;
-uniform int fogMode;
+uniform ivec2 eyeBrightnessSmooth;
+uniform float rainStrength;
+uniform int worldTime;
+
+#include "lib/color.glsl"
+#include "lib/useful.glsl"
 
 void main() {
+    
+	bool overworld = isOverworld();
 
-	gl_FragData[0] = color;
-	if (fogMode == GL_EXP) {
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, 1.0 - clamp(exp(-gl_Fog.density * gl_FogFragCoord), 0.0, 1.0));
-	} else if (fogMode == GL_LINEAR) {
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, clamp((gl_FogFragCoord - gl_Fog.start) * gl_Fog.scale, 0.0, 1.0));
-	} else if (isEyeInWater == 1.0 || isEyeInWater == 2.0){
-		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Fog.color.rgb, 1.0 - clamp(exp(-gl_Fog.density * gl_FogFragCoord), 0.0, 1.0));
+    vec3 fCol = getFogColor();
+	if (overworld) {
+		fCol = mix(fCol, currentSkyLight() * 0.7, eyeBrightnessSmooth.y / 256.0);
 	}
+    if (overworld) {
+        // gl_FragData[0] = vec4(mix(color.rgb, fCol, clamp((gl_FogFragCoord + 0.0) * 0.03, 0.0, 1.0)),color.a);
+        gl_FragData[0] = vec4(fCol, color.a);
+    } else {
+        gl_FragData[0] = vec4(fCol, 1.0);
+    }
+
     gl_FragData[1] = vec4(0.0); //fills normal buffer with 0.0, improves overall performance
 }

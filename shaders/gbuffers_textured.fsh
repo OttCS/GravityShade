@@ -32,21 +32,15 @@ varying float mat;
 uniform sampler2D normals;
 uniform sampler2D texture;
 uniform sampler2D lightmap;
-uniform float rainStrength;
+
 uniform vec4 entityColor;
+uniform vec3 shadowLightPosition;
+uniform ivec2 eyeBrightnessSmooth;
+uniform float far;
+uniform float rainStrength;
 uniform int isEyeInWater;
 uniform int entityId;
-uniform ivec2 eyeBrightnessSmooth;
-uniform vec3 shadowLightPosition;
 uniform int worldTime;
-
-uniform vec3 fogColor;
-
-#ifdef Fog
-const int GL_LINEAR = 9729;
-const int GL_EXP = 2048;
-uniform int fogMode;
-#endif
 
 #ifdef Reflections
 
@@ -97,17 +91,14 @@ vec3 calcBump(vec2 coord){
 
 #endif
 
+vec3 emissiveLight = vec3(emissive_R * pow(lmcoord.x, emissive_R),emissive_G * pow(lmcoord.x, emissive_G),emissive_B * pow(lmcoord.x, emissive_B))*lmcoord.x;
+
 #ifdef Shadows
 varying float NdotL;
 varying vec3 getShadowpos;
 uniform sampler2DShadow shadowtex0;	//normal shadows
 uniform sampler2DShadow shadowtex1; //colored shadows
 uniform sampler2D shadowcolor0;
-
-//Hacky lightmap setup for emissive blocks, todo
-float modlmap = 13.0-lmcoord.s*12.35; 
-float torch_lightmap = max(1.5/(modlmap*modlmap)-0.00945,0.0);
-vec3 emissiveLight = clamp(vec3(1.25)*torch_lightmap, 0.0, 1.0); //emissive lightmap
 
 float shadowfilter(sampler2DShadow shadowtexture){
 	vec2 offset = vec2(0.25, -0.25) / shadowMapResolution;	
@@ -124,10 +115,8 @@ if(NdotL > 0.0 && rainStrength < 0.9){ //optimization, disable shadows during ra
 	float shading = shadowfilter(shadowtex0);
 	float cshading = shadowfilter(shadowtex1);
 	finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
-	
 	//avoid light leaking underground
 	finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-	
 	finalShading *= (1.0 - rainStrength) * (1.0 - iswater);
 }
 	
@@ -139,117 +128,93 @@ vec4 encode (vec3 n){
     return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/2.0, 1.0);
 }
 
-float smoothstep(float edge0, float edge1, float x) {
-	float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-	return t * t * (3.0 - 2.0 * t);
-}
-
-vec3 mix3(vec3 a, vec3 b, vec3 c, float param) {
-
-	if (param < 0.5) {
-		return mix(a, b, param * 2.0);
-	}
-
-	return mix(b, c, param * 2.0 - 1.0);
-
-	return vec3(0.0);
-
-}
-
-vec3 getOverworldSkyLighting (int tick) {
-
-	vec3 rise = vec3(1.0, 0.7, 0.4);
-	vec3 noon = vec3(1.2, 1.1, 1.0);
-	vec3 set = vec3(1.0, 0.4, 0.7);
-	vec3 night = vec3(0.2, 0.3, 0.4);
-
-	vec3 res = night;
-
-	if (tick < 1900) {
-		res = mix3(night, rise, noon, smoothstep(0.0, 1900.0, tick));
-	} else if (tick < 13065) {
-		res = noon;
-	} else if (tick < 15255) {
-		res = mix3(noon, set, night, smoothstep(13065.0, 15255.0, tick));
-	}
-
-	return res * mix(vec3(1.0), vec3(0.6, 0.8, 0.7), rainStrength);
-}
-
-bool isOverworld () {
-	#ifdef END
-		return false;
-	#endif
-	#ifdef NETHER
-		return false;
-	#endif
-	return true;
-}
+#include "lib/color.glsl"
+#include "lib/useful.glsl"
 
 void main() {
 
-	//Mix default MC skylight with custom emissive light
-	vec4 tex = texture2D(texture, texcoord.st) * color;
+	bool overworld = isOverworld();
 
-	vec3 skyLight = vec3(1.0);
+	vec4 tex = vec4(0.0);
+	vec4 normal = vec4(0.0);
+	vec3 skyLight = vec3(0.3);
 	vec3 ambLight = vec3(0.3);
 
-	if (isOverworld()) {
-		skyLight = getOverworldSkyLighting((worldTime + 1450) % 24000); // Overworld
+	if (overworld) {
+		skyLight = currentSkyLight(); // Overworld
 	} else {
 		#ifdef END
-			ambLight = vec3(0.8, 0.7, 0.8); // End
+			ambLight = vec3(0.7, 0.6, 0.7); // End
 		#else
-			ambLight = fogColor * 0.4 + 0.6; // Nether
+			ambLight = fogColor * 0.6 + 0.5; // Nether
 		#endif
 	}
-	
-	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), vec3(emissive_R * pow(lmcoord.x, emissive_R),emissive_G * pow(lmcoord.x, emissive_G),emissive_B * pow(lmcoord.x, emissive_B))*lmcoord.x-0.5/16.0);
-	
-	float rID = round(mcID);
+	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), emissiveLight);
 
-	if (rID == 10089.0 || rID == 10090.0) { // Emissive Blocks
+	float fogCover = 0.0;
+	#ifdef Fog
+		vec3 fCol = getFogColor();
+		fogCover = smoothstep(0.2, 1.0, gl_FogFragCoord / far);
+	#endif
+
+	if (fogCover < 1.0) {
+
+	tex = texture2D(texture, texcoord.st) * color; // Get tex
+	tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
+
+	#ifdef Shadows
+		if (overworld) tex.rgb = calcShadows(tex.rgb);
+	#endif
+	
+	// EMISSIVE BLOCKS WORK //
+	float rID = round(mcID); // Stupid varying floats are't precise enough
+	if (rID == 10089.0 || rID == 10090.0) {
 		lightComp = vec3(lmcoord.x);
 		tex.rgb *= tex.rgb + 0.5;
-	} else if (rID == 10566.0) { // Emissive Ores
-		float minVal = min(tex.r, min(tex.g, tex.b));
-		float maxVal = max(tex.r, max(tex.g, tex.b));
-		if (maxVal - minVal > 0.18) {
-			lightComp = max(lightComp, vec3(1.4));
+	} else if (rID == 10566.0) { // Emissive copper ,iron, gold, emerald
+		if (tex.b < tex.g) lightComp = max(lightComp, vec3(emissionStrength));
+	} else if (rID == 10056.0) { // Emissive redstone, diamond, lapis
+		if (max(tex.b, tex.r) > min(tex.g, tex.r) + 0.17) lightComp = max(lightComp, vec3(emissionStrength));
+	} else if(rID == 10998.0) { // Warped/Crimson Plants
+		if (tex.g > 0.2 || tex.r > 0.34) {
+			tex.rgb *= tex.rgb + 0.5;
+			lightComp = max(lightComp, vec3(emissionStrength));
 		}
+	} else if(rID == 10999.0) { // Misc. Glowing
+		tex.rgb *= tex.rgb + 0.5;
+		lightComp = max(lightComp, vec3(emissionStrength));
 	}
 	
 	tex.rgb *= lightComp;
 
-
-	vec4 normal = vec4(0.0); //fill the buffer with 0.0 if not needed, improves performance
-
-#ifdef Shadows
-	tex.rgb = calcShadows(tex.rgb);
-#endif
-
-// Fix Red Entities
-tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a);
-
-#ifdef Reflections	
-	vec2 waterpos = (vworldpos.xz - vworldpos.y);
-	if(mat > 0.9)normal = vec4(normalize(calcBump(waterpos) * tbnMatrix), 1.0); //mat > 0.9 so that only reflective blocks alter normals, boosts performance by about 30%. mat=reflective
-#endif
-
-if(iswater > 0.1){
-	if(isEyeInWater > 0) {
-		tex.a = 0.4;
+	// WACKY FIXES //
+	if(iswater > 0.1){ // Fix water
+		tex.a = 0.6;
+		tex.rgb = vec3(0.04, 0.08, 0.16) * (lightComp + 0.16);
+	} else if(entityId == 11000) { // Fix Lightning
+		tex = vec4(vec3(1.0), 0.5);
 	}
-	tex.rgb = vec3(0.04, 0.08, 0.16) * (lightComp + 0.2);
-}
 
-	//Fix lightning bolts
-	if(entityId == 11000) tex = vec4(vec3(1.0), 0.5);
-	
-#ifdef Fog
-	tex.rgb = mix(tex.rgb, gl_Fog.color.rgb, clamp((gl_FogFragCoord - gl_Fog.start * 0.2) * 0.01, 0.0, 1.0));
-#endif
+	#ifdef Reflections	
+		vec2 waterpos = (vworldpos.xz - vworldpos.y);
+		if(mat > 0.9 || rID == 10042.0)normal = vec4(normalize(calcBump(waterpos) * tbnMatrix), 1.0); //mat > 0.9 so that only reflective blocks alter normals, boosts performance by about 30%. mat=reflective
+	#endif
 
-	gl_FragData[0] = tex;
-	gl_FragData[1] = encode(normal.xyz);
+	} // Done with rendered effects
+
+	#ifdef Fog
+		if (overworld) {
+			fCol = mix(lightComp, skyLight * 0.7, eyeBrightnessSmooth.y / 256.0);
+		} else {
+			fCol = getFogColor();
+		}
+	#endif
+
+	if (fogCover < 1.0) { // Visible
+		gl_FragData[0] = vec4(mix(tex.rgb, fCol, fogCover), tex.a);
+		gl_FragData[1] = encode(normal.xyz);
+	} else { // Completely covered by fog, just render as fog color
+		gl_FragData[0] = vec4(fCol, 1.0);
+		gl_FragData[1] = vec4(0.0);
+	}
 }

@@ -3,19 +3,16 @@
     Made by Gravity10, Code base by Sildur.
 */
 
-#extension GL_EXT_gpu_shader4 : enable
+const float emissionStrength = 1.4;             //Emmisive ore and stem strength [0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
 
 #define customLight                       //Toggle custom light support for emissive blocks.
 #define emissive_R 2.8                      //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 #define emissive_G 1.6                      //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 #define emissive_B 1.0                      //[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0]
 
+#define Fog                                 //Toggle default fog.
+
 #ifdef composite0
-    //#define SSAO                              //Toggle custom ambient occlusion, work in progress.
-    const float ambientOcclusionLevel = 1.0f;   //Adjust minecrafts inbuild ambient occlusion. [0.0f 0.1f 0.2f 0.3f 0.4f 0.5f 0.6f 0.7f 0.8f 0.9f 1.0f]
-
-    //#define Celshading						//Cel shades everything, making it look somewhat like Borderlands.
-
     #define Reflections							//Toggle reflections, also adjust in gbuffers_textured.fsh
     #define Refractions						//Toggle refractions / distortion caused by waves.
     #define skyReflection						//Reflect and blend the default skycolor. Makes water waves more visible. WIP
@@ -24,21 +21,13 @@
     #define grays_quality 2					//[1 2] 1=fast 2=fancy
     #define grays_intensity 1.0				//Adjust godrays intensity [0.35 0.5 0.65 0.70 0.85 1.0]
 
-    //Debugging stuff
-    //#define depthbuffer						//Draw depth buffer
-    //#define draw_refnormals					//Draw reflection normals, actually composite normals but only reflections are stored in the buffer.
 #endif
 
 #ifdef gbuffers_clouds
-    #define Fog		                            //Toggle default fog.
+    // Nothing cloud-specific
 #endif
 
 #ifdef gbuffers_textured
-    //#define Colorboost                        //Gives default colors a little kick
-
-    #define MobsFlashRed
-
-    #define Fog                                 //Toggle default fog.
 
     #define Reflections                         //Toggle reflections, also adjust in composite.fsh
         #define WaterReflection
@@ -57,8 +46,6 @@
     #endif
     const float	sunPathRotation	= -40.0;		//[-10.0 -20.0 -30.0 -40.0f -50.0 -60.0 -70.0 -80.0 -0.15f -0.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0]
 
-    //#define waterTex                            //Toggle water texture
-
     #define nMap 0                              //[0 1 2]0=Off 1=Bumpmapping, 2=Parallax, also adjust in vertex
     #define POM_RES 32                          //Texture / Resourcepack resolution. [32 64 128 256 512 1024 2048]
     #define POM_DIST 16.0                       //[8.0 16.0 24.0 32.0 40.0 48.0 56.0 64.0]
@@ -66,18 +53,12 @@
     //#define draw_bmap                         //Draw bmap normals
 
     #define animationSpeed 0.6                  //[0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0]
-    //#define Waving_Leaves
-    //#define Waving_Vines
     #define Waving_Grass
     #define Waving_Entities                     //Includes: Saplings, small flowers, wheat, carrots, potatoes and beetroot.
     #define Waving_Tallgrass
-    //#define Waving_Fire
-    //#define Waving_Lava
-    //#define Waving_Water
     #define Waving_Lanterns
     #define waves_amplitude 0.65                //[0.55 0.65 0.75 0.85 0.95 1.05 1.15 1.25 1.35 1.45 1.55 1.65 1.75 1.85 1.95 2.05]
 
-    //#define TAA
 #endif
 
 #ifdef shadowprogram
