@@ -34,8 +34,8 @@ varying vec3 vworldpos;
 varying mat3 tbnMatrix;
 varying vec2 texcoord;
 varying vec2 lmcoord;
-varying float mcID;
 varying float iswater;
+varying float mcID;
 varying float mat;
 
 attribute vec4 mc_Entity;
@@ -224,8 +224,9 @@ if (istopv) {
 #endif
 
 mat = 0.0;
-	if(mcID == ENTITY_WATER)mat = 1.0;
-	if(mcID == ENTITY_ICE)mat = 2.0; //various ids are mapped to ice in block.properties
+	if(mcID == ENTITY_WATER) mat = 1.0;
+	if(mcID == ENTITY_ICE) mat = 2.0; //various ids are mapped to ice in block.properties
+	if(mcID == 10042.0) mat = 3.0;
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
 
 	//Fog

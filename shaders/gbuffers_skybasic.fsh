@@ -8,6 +8,7 @@
 
 varying vec4 color;
 
+uniform vec3 skyColor;
 uniform ivec2 eyeBrightnessSmooth;
 uniform float rainStrength;
 uniform int worldTime;
@@ -21,11 +22,11 @@ void main() {
 
     vec3 fCol = getFogColor();
 	if (overworld) {
-		fCol = mix(fCol, currentSkyLight() * 0.7, eyeBrightnessSmooth.y / 256.0);
+		fCol = mix(fCol, currentSkyLight(worldTime, rainStrength) * 0.7, eyeBrightnessSmooth.y / 256.0);
 	}
     if (overworld) {
         // gl_FragData[0] = vec4(mix(color.rgb, fCol, clamp((gl_FogFragCoord + 0.0) * 0.03, 0.0, 1.0)),color.a);
-        gl_FragData[0] = vec4(fCol, color.a);
+        gl_FragData[0] = vec4(fCol, 1.0);
     } else {
         gl_FragData[0] = vec4(fCol, 1.0);
     }

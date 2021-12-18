@@ -37,8 +37,8 @@ vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 	return res * mix(vec3(1.0), vec3(0.6, 0.8, 0.7), rainStrength);
 }
 
-vec3 currentSkyLight() {
-	return getOverworldSkyLighting((worldTime + 1450) % 24000, rainStrength);
+vec3 currentSkyLight(int x, float rain) {
+	return getOverworldSkyLighting((x + 1450) % 24000, rain);
 }
 
 uniform vec3 fogColor;

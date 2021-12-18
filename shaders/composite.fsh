@@ -134,29 +134,17 @@ vec2 calcBump(vec2 coord){
 
 #ifdef Godrays
 varying vec2 lightPos;
-float land = 1.0-near/far/far;
-float getnoise(vec2 pos) {
-	return fract(sin(dot(pos ,vec2(18.9898f,28.633f))) * 4378.5453f);
-}
 vec3 calcRays(vec3 color){
 	vec2 deltatexcoord = vec2(lightPos - texcoord) * 0.04;
-#if grays_quality == 1
-	vec2 noisetc = texcoord; //fast unfiltered
-#elif grays_quality == 2
-	vec2 noisetc = texcoord + deltatexcoord*getnoise(texcoord); //slow filtered
-#endif
+	vec2 noisetc = texcoord + deltatexcoord*fract(sin(dot(texcoord, vec2(18.9898,28.633))) * 4378.5453); //slow filtered
 
 	float gr = 1.0;
 	for (int i = 0; i < 20; i++) {
 		float depth0 = texture2D(depthtex0, noisetc).x;
 		noisetc += deltatexcoord;
-		gr += dot(step(land, depth0), 1.0)*cdist(noisetc);
+		gr += dot(step(1.0-near/far/far, depth0), 1.0)*cdist(noisetc);
 	}
-	gr /= 20.0;
-
-	vec3 gfragpos0 = screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x);
-	float lightpos = clamp(dot(normalize(gfragpos0.xyz), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*grays_intensity;
-	return color *= 1.0+lightpos*color * (1.0 - isEyeInWater);
+	return color *= 1.0+clamp(dot(normalize(screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x)), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*0.05*grays_intensity*color * (1.0 - isEyeInWater);
 }
 #endif
 
@@ -176,18 +164,12 @@ void main() {
 	bool isice = getmat > 1.9 && getmat < 2.1;
 
 #ifdef Reflections
-if(isreflective && isEyeInWater < 0.9){
+if(isreflective){
 	vec4 reflection = raytrace(tex, newnormal.xyz);
 
  	vec3 normfrag1 = normalize(screenSpace(texcoord.xy, texture2D(depthtex1, texcoord.xy).x));
-
-	vec3 rVector = reflect(normfrag1, normalize(newnormal.xyz));
-	vec3 hV= normalize(rVector - normfrag1);
-	
-	float normalDotEye = dot(hV, normfrag1);
-	float F0 = 0.09;
-	float fresnel = pow(clamp(1.0 + normalDotEye,0.0,1.0), 4.0) ;
-		  fresnel = fresnel+F0*(1.0-fresnel);
+	float fresnel = pow(clamp(1.0 + dot(normalize(reflect(normfrag1, normalize(newnormal.xyz)) - normfrag1), normfrag1),0.0,1.0), 4.0) ;
+		  fresnel = fresnel+0.09*(1.0-fresnel);
 		
 #ifdef Refractions
 	vec4 fragpos0 = gbufferProjectionInverse * (vec4(texcoord, texture2D(depthtex0, texcoord).x, 1.0) * 2.0 - 1.0);
@@ -195,7 +177,6 @@ if(isreflective && isEyeInWater < 0.9){
 	vec2 wpos = (gbufferModelViewInverse*fragpos0).xz+cameraPosition.xz;
 		 if(!isice)tex.rgb = texture2D(texture, (texcoord.xy+calcBump(wpos))).rgb*color.rgb;
 #endif
-
 		 reflection.rgb = mix(tex.rgb, reflection.rgb, reflection.a); //maybe change tex with skycolor
 		 tex.rgb = mix(tex.rgb, reflection.rgb, fresnel*1.25);
 }
