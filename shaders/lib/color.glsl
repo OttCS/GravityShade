@@ -21,7 +21,7 @@ vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 
 	vec3 rise = vec3(1.1, 0.7, 0.5);
 	vec3 noon = vec3(1.2, 1.1, 1.0);
-	vec3 set = vec3(1.1, 0.6, 0.5);
+	vec3 set = vec3(1.1, 0.5, 0.5);
 	vec3 night = vec3(0.3, 0.4, 0.5);
 
 	vec3 res = night;

@@ -22,6 +22,6 @@ uniform int worldTime;
 void main() {
 
 	gl_FragData[0] = texture2D(texture, texcoord.xy * (1.0 + rainStrength))*vec4(currentSkyLight(worldTime, rainStrength), 1.0);
-	gl_FragData[1] = vec4(0.0); //fill normal buffer with 0.0, improves performance
+	gl_FragData[1] = vec4(0.0);
 
 }

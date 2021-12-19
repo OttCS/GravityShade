@@ -44,6 +44,7 @@ vec3 screenSpace(vec2 coord, float depth){
 
 #ifdef Reflections
 uniform mat4 gbufferProjection;
+uniform vec3 skyColor;
 uniform ivec2 eyeBrightnessSmooth;
 
 vec3 nvec3(vec4 pos) {
@@ -148,10 +149,6 @@ vec3 calcRays(vec3 color){
 }
 #endif
 
-#ifdef skyReflection
-uniform vec3 skyColor;
-#endif
-
 void main() {
 
 	vec4 tex = texture2D(texture, texcoord.xy)*color;
@@ -159,8 +156,7 @@ void main() {
 	vec3 newnormal = decode(normal.xy);
 
 	float getmat = normal.z*2.0;
-	bool iswater = getmat > 0.9 && getmat < 1.1;
-	bool isreflective = getmat > 0.9 && getmat < 3.1;
+	bool isreflective = getmat > 0.9 && getmat < 2.1;
 	bool isice = getmat > 1.9 && getmat < 2.1;
 
 #ifdef Reflections
@@ -173,12 +169,12 @@ if(isreflective){
 		
 #ifdef Refractions
 	vec4 fragpos0 = gbufferProjectionInverse * (vec4(texcoord, texture2D(depthtex0, texcoord).x, 1.0) * 2.0 - 1.0);
-		 fragpos0 /= fragpos0.w;
+	fragpos0 /= fragpos0.w;
 	vec2 wpos = (gbufferModelViewInverse*fragpos0).xz+cameraPosition.xz;
-		 if(!isice)tex.rgb = texture2D(texture, (texcoord.xy+calcBump(wpos))).rgb*color.rgb;
+	if(!isice)tex.rgb = texture2D(texture, (texcoord.xy+calcBump(wpos))).rgb*color.rgb;
 #endif
-		 reflection.rgb = mix(tex.rgb, reflection.rgb, reflection.a); //maybe change tex with skycolor
-		 tex.rgb = mix(tex.rgb, reflection.rgb, fresnel*1.25);
+	reflection.rgb = mix(tex.rgb, reflection.rgb, reflection.a); //maybe change tex with skycolor
+	tex.rgb = mix(tex.rgb, reflection.rgb, fresnel*1.25);
 }
 #endif
 

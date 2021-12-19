@@ -148,6 +148,8 @@ void main() {
 	vec3 skyLight = vec3(0.3);
 	vec3 ambLight = vec3(0.3);
 
+	float rID = round(mcID); // Stupid varying floats are't precise enough
+
 	if (overworld) {
 		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
 	} else {
@@ -161,9 +163,8 @@ void main() {
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		vec3 fCol = getFogColor();
-		if (isEyeInWater > 0) fCol = waterCol;
-		fogCover = smoothstep(0.4, 0.997, gl_FogFragCoord / far);
+		float wAlph = min(isEyeInWater, 1) * 0.397;
+		fogCover = smoothstep(0.4 - wAlph, 0.997 - wAlph * 1.8, gl_FogFragCoord / far);
 	#endif
 
 	if (fogCover < 1.0) {
@@ -172,7 +173,6 @@ void main() {
 	tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 	
 	// EMISSIVE BLOCKS WORK //
-	float rID = round(mcID); // Stupid varying floats are't precise enough
 	if (rID == 10089.0 || rID == 10090.0) {
 		tex.rgb = emissiveToneMap(tex.rgb);
 		lightComp = vec3(lmcoord.x * 0.8 + 0.2);
@@ -194,8 +194,8 @@ void main() {
 	#endif
 
 	// WACKY FIXES //
-	if(iswater > 0.1){ // Fix water
-		tex.a = 0.6;
+	if(rID == 10008.0){ // Fix water
+		tex.a = 0.8;
 		tex.rgb = waterCol * (lightComp + 0.16);
 	} else if(entityId == 11000) { // Fix Lightning
 		tex = vec4(vec3(1.0), 0.5);
@@ -208,16 +208,19 @@ void main() {
 
 	} // Done with rendered effects
 
+	vec3 fCol;
 	#ifdef Fog
 		if (overworld) {
 			fCol = mix(lightComp, skyLight * 0.7, eyeBrightnessSmooth.y / 256.0);
 		} else {
 			fCol = getFogColor();
 		}
+		if (isEyeInWater == 1) fCol *= waterCol * (lightComp + 1.8);
 	#endif
 
 	if (fogCover < 1.0) { // Visible
-		gl_FragData[0] = vec4(mix(tex.rgb, fCol, fogCover), mix(tex.a, 1.0, fogCover));
+		gl_FragData[0] = vec4(mix(tex.rgb, fCol, fogCover), tex.a);
+		if (rID == 10008.0) gl_FragData[0].a = mix(tex.a, 1.0, fogCover); // blendAlphaFog water
 		gl_FragData[1] = encode(normal.xyz);
 	} else { // Completely covered by fog, just render as fog color
 		gl_FragData[0] = vec4(fCol, 1.0);
