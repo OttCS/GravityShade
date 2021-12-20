@@ -29,15 +29,15 @@ varying float iswater;
 varying float mcID;
 varying float mat;
 
-uniform sampler2D normals;
 uniform sampler2D texture;
-uniform sampler2D lightmap;
 
 uniform vec4 entityColor;
 uniform vec3 shadowLightPosition;
 uniform ivec2 eyeBrightnessSmooth;
 uniform float far;
 uniform float rainStrength;
+uniform int heldBlockLightValue;
+uniform int heldBlockLightValue2;
 uniform int isEyeInWater;
 uniform int entityId;
 uniform int worldTime;
@@ -91,7 +91,8 @@ vec3 calcBump(vec2 coord){
 
 #endif
 
-vec3 emissiveLight = vec3(emissive_R * pow(lmcoord.x, emissive_R),emissive_G * pow(lmcoord.x, emissive_G),emissive_B * pow(lmcoord.x, emissive_B))*lmcoord.x;
+// vec3 emissiveLight = vec3(emissive_R * pow(lmcoord.x, emissive_R * 0.5),emissive_G * pow(lmcoord.x, emissive_G * 0.5),emissive_B * pow(lmcoord.x, emissive_B * 0.5))*lmcoord.x;
+vec3 emissiveLight = vec3(emissive_R,emissive_G,emissive_B)*pow(lmcoord.x, 1.6);
 
 #ifdef Shadows
 varying float NdotL;
@@ -156,15 +157,14 @@ void main() {
 		#ifdef END
 			ambLight = vec3(0.7, 0.6, 0.7); // End
 		#else
-			ambLight = emissiveToneMap(fogColor); // Nether
+			ambLight = fogColor * 0.6 + 0.4; // Nether
 		#endif
 	}
 	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), emissiveLight);
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		float wAlph = min(isEyeInWater, 1) * 0.397;
-		fogCover = smoothstep(0.4 - wAlph, 0.997 - wAlph * 1.8, gl_FogFragCoord / far);
+		fogCover = smoothstep(0.2, 0.997, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
 	#endif
 
 	if (fogCover < 1.0) {
@@ -183,21 +183,20 @@ void main() {
 			tex.rgb = emissiveToneMap(tex.rgb);
 			lightComp = emissiveLightComp(lightComp, tex.rgb);
 		}
-	} else if(rID == 10999.0) { // Misc. Glowing
-		tex.rgb = emissiveToneMap(tex.rgb);
-		lightComp = emissiveLightComp(lightComp, tex.rgb);
-	}	
-	tex.rgb *= mix(vec3(0.0), color.rgb, color.a) * lightComp;
+	}
+	if (gl_FogFragCoord < 17.0) lightComp = max(lightComp, mix(vec3(0.0), vec3(emissive_R,emissive_G,emissive_B), smoothstep(4.0, 16.0, max(heldBlockLightValue, heldBlockLightValue2) - gl_FogFragCoord)));
+	tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
+	// heldBlockLightValue
 	
 	#ifdef Shadows
 		if (overworld) tex.rgb = calcShadows(tex.rgb);
 	#endif
 
 	// WACKY FIXES //
-	if(rID == 10008.0){ // Fix water
+	if (rID == 10008.0){ // Fix water
 		tex.a = 0.8;
 		tex.rgb = waterCol * (lightComp + 0.16);
-	} else if(entityId == 11000) { // Fix Lightning
+	}  else if (entityId == 11000) { // Fix Lightning
 		tex = vec4(vec3(1.0), 0.5);
 	}
 
@@ -211,7 +210,7 @@ void main() {
 	vec3 fCol;
 	#ifdef Fog
 		if (overworld) {
-			fCol = mix(lightComp, skyLight * 0.7, eyeBrightnessSmooth.y / 256.0);
+			fCol = getOverworldFogColor(skyLight * 0.7, eyeBrightnessSmooth.y);
 		} else {
 			fCol = getFogColor();
 		}
@@ -220,7 +219,7 @@ void main() {
 
 	if (fogCover < 1.0) { // Visible
 		gl_FragData[0] = vec4(mix(tex.rgb, fCol, fogCover), tex.a);
-		if (rID == 10008.0) gl_FragData[0].a = mix(tex.a, 1.0, fogCover); // blendAlphaFog water
+		if (rID == 10008.0) gl_FragData[0].a = mix(tex.a, 1.0, fogCover); // blendFogWithAlpha water
 		gl_FragData[1] = encode(normal.xyz);
 	} else { // Completely covered by fog, just render as fog color
 		gl_FragData[0] = vec4(fCol, 1.0);

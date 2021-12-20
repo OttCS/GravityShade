@@ -52,3 +52,7 @@ vec3 getFogColor() {
 	#endif
 	return vec3(0.3); // Default Ambient Light
 }
+
+vec3 getOverworldFogColor(vec3 dimLight, float playerSkyExposure) {
+	return mix(vec3(0.3), dimLight, playerSkyExposure / 256.0);
+}
