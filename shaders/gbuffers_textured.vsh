@@ -19,7 +19,6 @@
 #define ENTITY_VINES        10106.0
 
 #define ENTITY_WATER		10008.0	//9
-#define ENTITY_MIRROR		10042.0	//9
 #define ENTITY_LILYPAD      10111.0	//
 #define ENTITY_ICE			10079.0	//transparent reflections, stained glass(95, 160), slimeblock(165)
 
@@ -201,7 +200,7 @@ if (istopv) {
 			vec3(0.4,0.0,0.4));				
 #endif
 	iswater = 0.0;
-	if(mcID == ENTITY_WATER)iswater = 0.95;	//don't fully remove shadows on water plane
+	if(mcID == ENTITY_WATER) iswater = 0.95;	//don't fully remove shadows on water plane
 #ifdef Waving_Water
 	if(mcID == ENTITY_WATER || mcID == ENTITY_LILYPAD) { //water, lilypads
 		float fy = fract(vworldpos.y + 0.001);
@@ -214,8 +213,7 @@ if (istopv) {
 #ifdef Waving_Lanterns
 	if(mcID == ENTITY_WAVING_LANTERN){
 		vec3 fxyz = fract(vworldpos.xyz + 0.001);
-		float wave = 0.025 * sin(2 * PI * (frameTimeCounter*0.4 + vworldpos.x * 0.5 + vworldpos.z * 0.5));
-					//+ 0.025 * sin(2 * PI * (frameTimeCounter*0.4 + worldpos.y *0.25 + worldpos.z *0.25));
+		float wave = 0.025 * sin(2.0 * PI * (frameTimeCounter*0.4 + vworldpos.x * 0.5 + vworldpos.z * 0.5));
 		float waveY = 0.05 * cos(frameTimeCounter*2.0 + vworldpos.y);
 		position.x -= clamp(wave, -fxyz.x, 1.0-fxyz.x);
 		position.y += clamp(waveY*0.25, -fxyz.y, 1.0-fxyz.y)+0.015;		
@@ -223,10 +221,16 @@ if (istopv) {
 	}
 #endif
 
-mat = 0.0;
-	if(mcID == ENTITY_WATER) mat = 1.0;
-	if(mcID == ENTITY_ICE) mat = 2.0; //various ids are mapped to ice in block.properties
-	if(mcID == 10042.0) mat = 3.0;
+	mat = 0.0;
+	if(mcID == ENTITY_WATER) {
+		mat = 1.0;
+	} else if(mcID == ENTITY_ICE) {
+		mat = 2.0;
+	} else if(mcID == 10042.0) { // POLISHED BLOCKS
+		mat = 3.0;
+	} else if(mcID == 10001.0) { // METALLIC ACCENTS
+		mat = 4.0;
+	}
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
 
 	//Fog

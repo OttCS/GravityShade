@@ -72,21 +72,16 @@ float calcWaves(vec2 coord){
 }
 
 vec3 calcBump(vec2 coord){
-	if (mat > 2.0) { // Smoother blocks
-		return vec3(0.0, 0.0, 0.55);
+	if (mat > 2.1) return vec3(0.0, 0.0, 0.55);
+	float xDelta = 0.0;
+	float yDelta = 0.0;
+	if (mat < 2.1) {
+		const vec2 deltaPos = vec2(0.25, 0.0);
+		float h0 = calcWaves(coord);
+		xDelta = ((calcWaves(coord + deltaPos.xy)-h0)+(h0-calcWaves(coord - deltaPos.xy)));
+		yDelta = (1.0 + iswater) * ((calcWaves(coord + deltaPos.yx)-h0)+(h0-calcWaves(coord - deltaPos.yx)));
 	}
-	const vec2 deltaPos = vec2(0.25, 0.0);
-
-	float h0 = calcWaves(coord);
-	float h1 = calcWaves(coord + deltaPos.xy);
-	float h2 = calcWaves(coord - deltaPos.xy);
-	float h3 = calcWaves(coord + deltaPos.yx);
-	float h4 = calcWaves(coord - deltaPos.yx);
-
-	float xDelta = ((h1-h0)+(h0-h2));
-	float yDelta = (1.0 + iswater) * ((h3-h0)+(h0-h4));
-
-	return vec3(vec2(xDelta,yDelta)*0.45, 0.55); //z = 1.0-0.5
+	return vec3(vec2(xDelta,yDelta)*0.45, 0.55);
 }
 
 #endif
@@ -126,7 +121,7 @@ return c * (1.0+finalShading+emissiveLight) * slight;
 #endif
 
 vec4 encode (vec3 n){
-    return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/2.0, 1.0);
+    return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/4.0, 1.0);
 }
 
 vec3 emissiveLightComp(vec3 lightComp, vec3 color) {
@@ -168,43 +163,41 @@ void main() {
 	#endif
 
 	if (fogCover < 1.0) {
-
-	tex = texture2D(texture, texcoord.st); // Get tex
-	tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
+		tex = texture2D(texture, texcoord.st); // Get tex
+		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 	
-	// EMISSIVE BLOCKS WORK //
-	if (rID == 10089.0 || rID == 10090.0) {
-		tex.rgb = emissiveToneMap(tex.rgb);
-		lightComp = vec3(lmcoord.x * 0.8 + 0.2);
-	} else if (rID == 10566.0) { // Emissive ores
-		lightComp = emissiveLightComp(lightComp, tex.rgb);
-	} else if(rID == 10998.0) { // Warped/Crimson Plants
-		if (tex.g > 0.2 || tex.r > 0.34) {
+		// EMISSIVE BLOCKS WORK //
+		if (rID == 10089.0 || rID == 10090.0) {
 			tex.rgb = emissiveToneMap(tex.rgb);
+			lightComp = vec3(lmcoord.x * 0.8 + 0.2);
+		} else if (rID == 10566.0) { // Emissive ores
 			lightComp = emissiveLightComp(lightComp, tex.rgb);
+		} else if(rID == 10998.0) { // Warped/Crimson Plants
+			if (tex.g > 0.2 || tex.r > 0.34) {
+				tex.rgb = emissiveToneMap(tex.rgb);
+				lightComp = emissiveLightComp(lightComp, tex.rgb);
+			}
 		}
-	}
-	if (gl_FogFragCoord < 17.0) lightComp = max(lightComp, mix(vec3(0.0), vec3(emissive_R,emissive_G,emissive_B), smoothstep(4.0, 16.0, max(heldBlockLightValue, heldBlockLightValue2) - gl_FogFragCoord)));
-	tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
-	// heldBlockLightValue
+		if (gl_FogFragCoord < 17.0) lightComp = max(lightComp, mix(vec3(0.0), vec3(emissive_R,emissive_G,emissive_B), smoothstep(4.0, 16.0, max(heldBlockLightValue, heldBlockLightValue2) - gl_FogFragCoord)));
+		tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
+		// heldBlockLightValue
 	
-	#ifdef Shadows
-		if (overworld) tex.rgb = calcShadows(tex.rgb);
-	#endif
+		#ifdef Shadows
+			if (overworld) tex.rgb = calcShadows(tex.rgb);
+		#endif
 
-	// WACKY FIXES //
-	if (rID == 10008.0){ // Fix water
-		tex.a = 0.8;
-		tex.rgb = waterCol * (lightComp + 0.16);
-	}  else if (entityId == 11000) { // Fix Lightning
-		tex = vec4(vec3(1.0), 0.5);
-	}
+		// WACKY FIXES //
+		if (rID == 10008.0){ // Fix water
+			tex.a = 0.8;
+			tex.rgb = waterCol * (lightComp + 0.16);
+		}  else if (entityId == 11000) { // Fix Lightning
+			tex = vec4(0.9, 0.8, 1.0, 0.5);
+		}
 
-	#ifdef Reflections	
-		vec2 waterpos = (vworldpos.xz - vworldpos.y);
-		if(mat > 0.9 || rID == 10042.0)normal = vec4(normalize(calcBump(waterpos) * tbnMatrix), 1.0); //mat > 0.9 so that only reflective blocks alter normals, boosts performance by about 30%. mat=reflective
-	#endif
-
+		#ifdef Reflections	
+			vec2 waterpos = (vworldpos.xz - vworldpos.y);
+			if(mat > 0.9) normal = vec4(normalize(calcBump(waterpos) * tbnMatrix), 1.0);
+		#endif
 	} // Done with rendered effects
 
 	vec3 fCol;

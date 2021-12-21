@@ -24,12 +24,12 @@ uniform float far;
 uniform int isEyeInWater;
 
 vec3 decode (vec2 enc){
-    vec2 fenc = enc*4-2;
+    vec2 fenc = enc*4.0-2.0;
     float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4.0);
+    float g = sqrt(1.0-f/4.0);
     vec3 n;
     n.xy = fenc*g;
-    n.z = 1-f/2;
+    n.z = 1.0-f/2.0;
     return n;
 }
 
@@ -145,7 +145,7 @@ vec3 calcRays(vec3 color){
 		noisetc += deltatexcoord;
 		gr += dot(step(1.0-near/far/far, depth0), 1.0)*cdist(noisetc);
 	}
-	return color *= 1.0+clamp(dot(normalize(screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x)), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*0.05*grays_intensity*color * (1.0 - isEyeInWater);
+	return color *= 1.0 + clamp(dot(normalize(screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x)), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*0.05*grays_intensity*color * (1.0 - isEyeInWater);
 }
 #endif
 
@@ -155,9 +155,9 @@ void main() {
 	vec3 normal = texture2D(gnormal, texcoord.xy).xyz; //vec2 for normals, z=mat
 	vec3 newnormal = decode(normal.xy);
 
-	float getmat = normal.z*2.0;
-	bool isreflective = getmat > 0.9 && getmat < 2.1;
-	bool isice = getmat > 1.9 && getmat < 2.1;
+	float getmat = normal.z*4.0;
+	bool isreflective = getmat > 0.9 && getmat < 4.1;
+	// bool isStable = getmat > 1.9 && isreflective;
 
 #ifdef Reflections
 if(isreflective){
@@ -171,7 +171,7 @@ if(isreflective){
 	vec4 fragpos0 = gbufferProjectionInverse * (vec4(texcoord, texture2D(depthtex0, texcoord).x, 1.0) * 2.0 - 1.0);
 	fragpos0 /= fragpos0.w;
 	vec2 wpos = (gbufferModelViewInverse*fragpos0).xz+cameraPosition.xz;
-	if(!isice)tex.rgb = texture2D(texture, (texcoord.xy+calcBump(wpos))).rgb*color.rgb;
+	// if(!isStable)tex.rgb = texture2D(texture, (texcoord.xy+calcBump(wpos))).rgb*color.rgb;
 #endif
 	reflection.rgb = mix(tex.rgb, reflection.rgb, reflection.a); //maybe change tex with skycolor
 	tex.rgb = mix(tex.rgb, reflection.rgb, fresnel*1.25);
