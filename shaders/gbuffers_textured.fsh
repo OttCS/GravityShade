@@ -25,7 +25,6 @@ varying vec3 vworldpos;
 varying mat3 tbnMatrix;
 varying vec2 texcoord;
 varying vec2 lmcoord;
-varying float iswater;
 varying float mcID;
 varying float mat;
 
@@ -52,42 +51,47 @@ mat2 rmatrix(float rad){
 	return mat2(vec2(cos(rad), -sin(rad)), vec2(sin(rad), cos(rad)));
 }
 
-float calcWaves(vec2 coord){
-	vec2 movement = abs(vec2(0.0, -frameTimeCounter * 0.31365*iswater)) * animationSpeed;
+float calcWaves(vec2 coord, bool iswater){
+	vec2 movement = vec2(0.0);
 		 
 	coord *= 0.262144;
-	vec2 coord0 = coord * rmatrix(1.0) - movement * 4.0;
-		 coord0.y *= 3.0;
-	vec2 coord1 = coord * rmatrix(0.5) - movement * 1.5;
-		 coord1.y *= 3.0;		 
-	vec2 coord2 = coord + movement * 0.5;
-		 coord2.y *= 3.0;
+	vec2 coord0 = coord * rmatrix(1.0);
+	vec2 coord1 = coord * rmatrix(0.5);	 
+	vec2 coord2 = coord;
+		 
+	if (iswater) {
+		movement = abs(vec2(0.0, -frameTimeCounter * 0.31365)) * animationSpeed;
+		coord0 -= movement * 4.0;
+		coord1 -= movement * 1.5;
+		coord2 += movement * 0.5;
+	}
 	
-	float wave = 1.0 - texture2D(noisetex,coord0 * 0.005).x * 10.0;		//big waves
-		  wave += texture2D(noisetex,coord1 * 0.010416).x * 7.0;		//small waves
-		  wave += sqrt(texture2D(noisetex,coord2 * 0.045).x * 6.5) * 1.33;//noise texture
-		  wave *= 0.0157;
+	float wave = 1.0 - texture2D(noisetex,coord0 * vec2(0.005, 0.015)).x * 10.0;		//big waves
+		  wave += texture2D(noisetex,coord1 * vec2(0.010416, 0.031248)).x * 7.0;		//small waves
+		  wave += sqrt(texture2D(noisetex,coord2 * vec2(0.045, 0.135)).x * 6.5) * 1.33;//noise texture
 	
-	return wave;
+	return wave * 0.0157;
 }
 
-vec3 calcBump(vec2 coord){
+vec3 calcBump(vec2 coord, bool iswater){
 	if (mat > 2.1) return vec3(0.0, 0.0, 0.55);
 	float xDelta = 0.0;
 	float yDelta = 0.0;
 	if (mat < 2.1) {
 		const vec2 deltaPos = vec2(0.25, 0.0);
-		float h0 = calcWaves(coord);
-		xDelta = ((calcWaves(coord + deltaPos.xy)-h0)+(h0-calcWaves(coord - deltaPos.xy)));
-		yDelta = (1.0 + iswater) * ((calcWaves(coord + deltaPos.yx)-h0)+(h0-calcWaves(coord - deltaPos.yx)));
+		float h0 = calcWaves(coord, iswater);
+		xDelta = ((calcWaves(coord + deltaPos.xy, iswater)-h0)+(h0-calcWaves(coord - deltaPos.xy, iswater)));
+		yDelta = 1.4 * ((calcWaves(coord + deltaPos.yx, iswater)-h0)+(h0-calcWaves(coord - deltaPos.yx, iswater)));
 	}
 	return vec3(vec2(xDelta,yDelta)*0.45, 0.55);
 }
 
 #endif
 
-// vec3 emissiveLight = vec3(emissive_R * pow(lmcoord.x, emissive_R * 0.5),emissive_G * pow(lmcoord.x, emissive_G * 0.5),emissive_B * pow(lmcoord.x, emissive_B * 0.5))*lmcoord.x;
-vec3 emissiveLight = vec3(emissive_R,emissive_G,emissive_B)*pow(lmcoord.x, 1.6);
+vec3 blockLightMap(float val) {
+	return vec3(emissive_R * pow(val, emissive_R * 0.5),emissive_G * pow(val, emissive_G * 0.5),emissive_B * pow(val, emissive_B * 0.5))*val;
+}
+vec3 emissiveLight = blockLightMap(lmcoord.x);
 
 #ifdef Shadows
 varying float NdotL;
@@ -107,13 +111,13 @@ float shadowfilter(sampler2DShadow shadowtexture){
 vec3 calcShadows(vec3 c){
 	vec3 finalShading = vec3(0.0);
 
-if(NdotL > 0.0 && rainStrength < 0.9){ //optimization, disable shadows during rain for performance boost
+if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
 	float shading = shadowfilter(shadowtex0);
 	float cshading = shadowfilter(shadowtex1);
 	finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
 	//avoid light leaking underground
 	finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-	finalShading *= (1.0 - rainStrength) * (1.0 - iswater);
+	finalShading *= (1.0 - rainStrength);
 }
 	
 return c * (1.0+finalShading+emissiveLight) * slight;
@@ -136,7 +140,6 @@ vec3 emissiveToneMap(vec3 color) {
 #include "lib/useful.glsl"
 
 void main() {
-
 	bool overworld = isOverworld();
 
 	vec4 tex = vec4(0.0);
@@ -159,7 +162,7 @@ void main() {
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		fogCover = smoothstep(0.2, 0.997, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
+		fogCover = smoothstep(0.1, 0.997, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
 	#endif
 
 	if (fogCover < 1.0) {
@@ -178,9 +181,16 @@ void main() {
 				lightComp = emissiveLightComp(lightComp, tex.rgb);
 			}
 		}
-		if (gl_FogFragCoord < 17.0) lightComp = max(lightComp, mix(vec3(0.0), vec3(emissive_R,emissive_G,emissive_B), smoothstep(4.0, 16.0, max(heldBlockLightValue, heldBlockLightValue2) - gl_FogFragCoord)));
+		// Dynamic Handlight
+		if (gl_FogFragCoord < 8.0) {
+			float heldLight = max(heldBlockLightValue, heldBlockLightValue2);
+			if (heldLight > 0.0) {
+				float lmX = heldLight / 14.0 - gl_FogFragCoord / 8.0;
+				lightComp = max(lightComp, blockLightMap(lmX));
+			}
+		}
+		// End dynamic handlight
 		tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
-		// heldBlockLightValue
 	
 		#ifdef Shadows
 			if (overworld) tex.rgb = calcShadows(tex.rgb);
@@ -196,14 +206,14 @@ void main() {
 
 		#ifdef Reflections	
 			vec2 waterpos = (vworldpos.xz - vworldpos.y);
-			if(mat > 0.9) normal = vec4(normalize(calcBump(waterpos) * tbnMatrix), 1.0);
+			if(mat > 0.9) normal = vec4(normalize(calcBump(waterpos, rID == 10008.0) * tbnMatrix), 1.0);
 		#endif
 	} // Done with rendered effects
 
 	vec3 fCol;
 	#ifdef Fog
 		if (overworld) {
-			fCol = getOverworldFogColor(skyLight * 0.7, eyeBrightnessSmooth.y);
+			fCol = getOverworldFogColor(skyLight, eyeBrightnessSmooth.y);
 		} else {
 			fCol = getFogColor();
 		}

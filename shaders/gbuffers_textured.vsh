@@ -239,7 +239,7 @@ if (istopv) {
 	color = gl_Color;
 
 	//Fix colors on emissive blocks
-	if(mcID == ENTITY_EMISSIVE || mcID == ENTITY_LAVA || mcID == ENTITY_FIRE ||  mcID == ENTITY_WAVING_LANTERN || mcID == 10300.0)color = vec4(1.0);
+	if(mcID == 10089.0 ||  mcID == 10090.0) color = vec4(1.0);
 
 	//Bump & Parallax mapping
 	vec3 normal = normalize(gl_NormalMatrix * gl_Normal);	
