@@ -14,9 +14,9 @@ uniform int isEyeInWater;
 
 void main() {
 	bool overworld = isOverworld();
-	vec3 skyLight = currentSkyLight(worldTime, rainStrength);
 	vec3 fCol;
 	if (overworld) {
+		vec3 skyLight = currentSkyLight(worldTime, rainStrength);
 		fCol = getOverworldFogColor(skyLight, eyeBrightnessSmooth.y);
 		if (isEyeInWater == 1) fCol *= waterCol * (skyLight + 1.8);
 		fCol = mix(color.rgb, fCol, clamp((gl_FogFragCoord) * 0.04, 0.0, 1.0));

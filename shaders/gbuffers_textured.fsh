@@ -28,6 +28,7 @@ varying vec2 lmcoord;
 varying float mcID;
 varying float mat;
 
+uniform sampler2D noisetex;
 uniform sampler2D texture;
 
 uniform vec4 entityColor;
@@ -42,8 +43,6 @@ uniform int entityId;
 uniform int worldTime;
 
 #ifdef Reflections
-
-uniform sampler2D noisetex;
 
 uniform float frameTimeCounter;
 
@@ -196,18 +195,35 @@ void main() {
 			if (overworld) tex.rgb = calcShadows(tex.rgb);
 		#endif
 
+		#ifdef Reflections	
+			vec3 bump;
+			vec2 coord = (vworldpos.xz - vworldpos.y);
+			if(mat > 0.9) {
+				if (mat < 1.1) {
+					tex.a = 0.8;
+					float bump = 0.0;
+					bump += sin(coord.x * 0.24 + frameTimeCounter * 0.31 - cos(coord.y + frameTimeCounter));
+					bump += sin(coord.y * 1.37 - frameTimeCounter * 0.17 - cos(coord.x)) * 0.5;
+					bump += sin(coord.x * 1.71 - frameTimeCounter * 0.47) * 0.25;
+					bump /= 1.75;
+					if (bump < 0.4) {
+						normal = vec4(normalize(vec3(0.0, bump, 0.55) * tbnMatrix), 1.0);
+						tex.rgb = waterCol;
+					} else if (bump < 0.8) {
+						tex.rgb = waterCol * 2.0;
+					} else {
+						tex.rgb = vec3(1.0);
+					}
+				} else {
+					normal = vec4(normalize(calcBump(coord, rID == 10008.0) * tbnMatrix), 1.0);
+				}
+			}
+		#endif
+
 		// WACKY FIXES //
-		if (rID == 10008.0){ // Fix water
-			tex.a = 0.8;
-			tex.rgb = waterCol * (lightComp + 0.16);
-		}  else if (entityId == 11000) { // Fix Lightning
+		if (entityId == 11000) { // Fix Lightning
 			tex = vec4(0.9, 0.8, 1.0, 0.5);
 		}
-
-		#ifdef Reflections	
-			vec2 waterpos = (vworldpos.xz - vworldpos.y);
-			if(mat > 0.9) normal = vec4(normalize(calcBump(waterpos, rID == 10008.0) * tbnMatrix), 1.0);
-		#endif
 	} // Done with rendered effects
 
 	vec3 fCol;

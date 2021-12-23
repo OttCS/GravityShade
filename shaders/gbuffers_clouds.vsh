@@ -14,8 +14,6 @@ varying vec4 color;
 void main() {
 	gl_Position = ftransform();
 	gl_FogFragCoord = length(gl_Position.xyz);
-
 	texcoord = (gl_MultiTexCoord0).xy;
-	
 	color = gl_Color;
 }
