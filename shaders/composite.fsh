@@ -140,12 +140,12 @@ vec3 calcRays(vec3 color){
 	vec2 noisetc = texcoord + deltatexcoord*fract(sin(dot(texcoord, vec2(18.9898,28.633))) * 4378.5453); //slow filtered
 
 	float gr = 1.0;
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 16; i++) {
 		float depth0 = texture2D(depthtex0, noisetc).x;
 		noisetc += deltatexcoord;
 		gr += dot(step(1.0-near/far/far, depth0), 1.0)*cdist(noisetc);
 	}
-	return color *= 1.0 + clamp(dot(normalize(screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x)), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*0.05*grays_intensity*color * (1.0 - isEyeInWater);
+	return color *= 1.0 + clamp(dot(normalize(screenSpace(texcoord.xy, texture2D(depthtex0, texcoord.xy).x)), normalize(shadowLightPosition.xyz)), 0.0, 1.0)*gr*0.0625*grays_intensity*color * (1.0 - isEyeInWater);
 }
 #endif
 
