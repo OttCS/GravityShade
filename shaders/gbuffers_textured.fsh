@@ -65,9 +65,7 @@ float calcWaves(vec2 coord, bool iswater){
 		coord2 += movement * 0.5;
 	}
 	
-	float wave = 1.0 - texture2D(noisetex,coord0 * vec2(0.005, 0.015)).x * 10.0;		//big waves
-		  wave += texture2D(noisetex,coord1 * vec2(0.010416, 0.031248)).x * 7.0;		//small waves
-		  wave += sqrt(texture2D(noisetex,coord2 * vec2(0.045, 0.135)).x * 6.5) * 1.33;//noise texture
+	float wave = sqrt(texture2D(noisetex,coord2 * vec2(0.045, 0.135)).x * 6.5) * 1.33;//noise texture
 	
 	return wave * 0.0157;
 }
@@ -128,7 +126,14 @@ vec4 encode (vec3 n){
 }
 
 vec3 emissiveLightComp(vec3 lightComp, vec3 color) {
-	return max(lightComp, vec3(emissionStrength) * smoothstep(0.12, 0.24, max(color.r, max(color.g, color.b)) - min(color.r, min(color.g, color.b))));
+	float maxCol = max(color.r, max(color.g, color.b));
+	if (maxCol > 0.40) {
+		if (color.b + 0.1 < min(color.r, color.g)) return vec3(emissionStrength);
+		float minCol = min(color.r, min(color.g, color.b));
+		if (minCol + 0.18 < maxCol) return vec3(emissionStrength);
+		if (minCol > 0.7) return vec3(emissionStrength);
+	}
+	return lightComp;
 }
 
 vec3 emissiveToneMap(vec3 color) {
@@ -143,8 +148,10 @@ void main() {
 
 	vec4 tex = vec4(0.0);
 	vec4 normal = vec4(0.0);
-	vec3 skyLight = vec3(0.3);
-	vec3 ambLight = vec3(0.3);
+
+	vec3 skyLight = vec3(ambientLevel);
+	vec3 ambLight = vec3(ambientLevel);
+	if (isEyeInWater == 1) ambLight = waterCol;
 
 	float rID = round(mcID); // Stupid varying floats are't precise enough
 
@@ -152,9 +159,9 @@ void main() {
 		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
 	} else {
 		#ifdef END
-			ambLight = vec3(0.7, 0.6, 0.7); // End
+			ambLight = vec3(0.72, 0.60, 0.72); // End
 		#else
-			ambLight = fogColor * 0.6 + 0.4; // Nether
+			ambLight = fogColor * 0.60 + 0.48; // Nether
 		#endif
 	}
 	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), emissiveLight);
@@ -171,7 +178,7 @@ void main() {
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
 			tex.rgb = emissiveToneMap(tex.rgb);
-			lightComp = vec3(lmcoord.x * 0.8 + 0.2);
+			lightComp = vec3(lmcoord.x * emissionStrength * 0.8 + 0.2);
 		} else if (rID == 10566.0) { // Emissive ores
 			lightComp = emissiveLightComp(lightComp, tex.rgb);
 		} else if(rID == 10998.0) { // Warped/Crimson Plants
@@ -180,45 +187,29 @@ void main() {
 				lightComp = emissiveLightComp(lightComp, tex.rgb);
 			}
 		}
+
 		// Dynamic Handlight
-		if (gl_FogFragCoord < 8.0) {
-			float heldLight = max(heldBlockLightValue, heldBlockLightValue2);
-			if (heldLight > 0.0) {
-				float lmX = heldLight / 14.0 - gl_FogFragCoord / 8.0;
-				lightComp = max(lightComp, blockLightMap(lmX));
-			}
-		}
-		// End dynamic handlight
+		if (gl_FogFragCoord < 9.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 9.0));
+		
 		tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
 	
 		#ifdef Shadows
 			if (overworld) tex.rgb = calcShadows(tex.rgb);
 		#endif
 
-		#ifdef Reflections	
-			vec3 bump;
-			vec2 coord = (vworldpos.xz - vworldpos.y);
-			if(mat > 0.9) {
-				if (mat < 1.1) {
-					tex.a = 0.8;
-					float bump = 0.0;
-					bump += sin(coord.x * 0.24 + frameTimeCounter * 0.31 - cos(coord.y + frameTimeCounter));
-					bump += sin(coord.y * 1.37 - frameTimeCounter * 0.17 - cos(coord.x)) * 0.5;
-					bump += sin(coord.x * 1.71 - frameTimeCounter * 0.47) * 0.25;
-					bump /= 1.75;
-					if (bump < 0.4) {
-						normal = vec4(normalize(vec3(0.0, bump, 0.55) * tbnMatrix), 1.0);
-						tex.rgb = waterCol;
-					} else if (bump < 0.8) {
-						tex.rgb = waterCol * 2.0;
-					} else {
-						tex.rgb = vec3(1.0);
-					}
-				} else {
-					normal = vec4(normalize(calcBump(coord, rID == 10008.0) * tbnMatrix), 1.0);
-				}
-			}
-		#endif
+		// vec2 coord = vworldpos.xz - vworldpos.y;
+		// if(mat > 0.9) {
+		// 	float move = 0.0;
+		// 	if (mat < 1.1) move = frameTimeCounter;
+		// 	float bump = 0.0;
+		// 	if (mat < 2.1) {
+		// 		bump += sin(coord.x - coord.y + cos(coord.y) - move);
+		// 	}
+		// 	normal = vec4(normalize(vec3(0.0, bump, 0.55) * tbnMatrix), 1.0);
+		// 	if (rID == 10008.0) { // Water coloration based on bump
+		// 		tex.a = 0.4;
+		// 	}
+		// }
 
 		// WACKY FIXES //
 		if (entityId == 11000) { // Fix Lightning
@@ -233,7 +224,7 @@ void main() {
 		} else {
 			fCol = getFogColor();
 		}
-		if (isEyeInWater == 1) fCol *= waterCol * (lightComp + 1.8);
+		if (isEyeInWater == 1) fCol *= waterCol;
 	#endif
 
 	if (fogCover < 1.0) { // Visible
