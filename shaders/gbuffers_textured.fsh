@@ -108,16 +108,30 @@ float shadowfilter(sampler2DShadow shadowtexture){
 vec3 calcShadows(vec3 c){
 	vec3 finalShading = vec3(0.0);
 
-if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
-	float shading = shadowfilter(shadowtex0);
-	float cshading = shadowfilter(shadowtex1);
-	finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
-	//avoid light leaking underground
-	finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-	finalShading *= (1.0 - rainStrength);
+	if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
+		float shading = shadowfilter(shadowtex0);
+		float cshading = shadowfilter(shadowtex1);
+		finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
+		//avoid light leaking underground
+		finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
+		finalShading *= (1.0 - rainStrength);
+	}
+	return c * (1.0+finalShading+emissiveLight) * slight;
 }
-	
-return c * (1.0+finalShading+emissiveLight) * slight;
+
+vec3 calcShadAmt(){
+	vec3 finalShading = vec3(0.0);
+
+	if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
+		float shading = shadowfilter(shadowtex0);
+		float cshading = shadowfilter(shadowtex1);
+		finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
+		//avoid light leaking underground
+		finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
+		finalShading *= (1.0 - rainStrength);
+	}
+	return finalShading * slight + (1.0 - slight);
+	// return (1.0+finalShading+emissiveLight) * slight;
 }
 #endif
 
@@ -164,7 +178,6 @@ void main() {
 			ambLight = fogColor * 0.60 + 0.48; // Nether
 		#endif
 	}
-	vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y), emissiveLight);
 
 	float fogCover = 0.0;
 	#ifdef Fog
@@ -174,6 +187,8 @@ void main() {
 	if (fogCover < 1.0) {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
+		
+		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * calcShadAmt()), emissiveLight);
 	
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
@@ -191,11 +206,11 @@ void main() {
 		// Dynamic Handlight
 		if (gl_FogFragCoord < 9.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 9.0));
 		
+		// #ifdef Shadows
+		// 	tex.rgb = calcShadows(tex.rgb);
+		// #endif
+
 		tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
-	
-		#ifdef Shadows
-			if (overworld) tex.rgb = calcShadows(tex.rgb);
-		#endif
 
 		// vec2 coord = vworldpos.xz - vworldpos.y;
 		// if(mat > 0.9) {

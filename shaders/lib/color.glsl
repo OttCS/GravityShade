@@ -20,7 +20,7 @@ vec3 mix3(vec3 a, vec3 b, vec3 c, float param) {
 vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 
 	vec3 rise = vec3(1.08, 0.72, 0.48);
-	vec3 noon = vec3(1.20, 1.08, 1.08);
+	vec3 noon = vec3(1.56, 1.44, 1.32);
 	vec3 set = vec3(1.08, 0.48, 0.60);
 	vec3 night = vec3(0.24, 0.36, 0.48);
 
