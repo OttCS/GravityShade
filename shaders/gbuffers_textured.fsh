@@ -119,21 +119,18 @@ vec3 calcShadows(vec3 c){
 	return c * (1.0+finalShading+emissiveLight) * slight;
 }
 
-vec3 calcShadAmt(){
-	vec3 finalShading = vec3(0.0);
-
-	if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
-		float shading = shadowfilter(shadowtex0);
-		float cshading = shadowfilter(shadowtex1);
-		finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
-		//avoid light leaking underground
-		finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-		finalShading *= (1.0 - rainStrength);
+float grayShade() {
+	float shading = 1.0;
+	if (rainStrength < 0.9) {
+		shading = shadowfilter(shadowtex0);
+		if (shading < 1.0) {
+			shading = (shading + shadowfilter(shadowtex1)) * 0.5;
+		}
 	}
-	return finalShading * slight + (1.0 - slight);
-	// return (1.0+finalShading+emissiveLight) * slight;
+	shading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
+	shading *= (1.0 - rainStrength);
+	return shading;
 }
-#endif
 
 vec4 encode (vec3 n){
     return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/4.0, 1.0);
@@ -188,7 +185,8 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 		
-		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * calcShadAmt()), emissiveLight);
+		float grayShade = grayShade() * slight + (1.0 - slight);
+		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * grayShade), emissiveLight);
 	
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
@@ -198,7 +196,8 @@ void main() {
 			lightComp = emissiveLightComp(lightComp, tex.rgb);
 		} else if(rID == 10998.0) { // Warped/Crimson Plants
 			if (tex.g > 0.2 || tex.r > 0.34) {
-				tex.rgb = emissiveToneMap(tex.rgb);
+				// tex.rgb = emissiveToneMap(tex.rgb);
+				tex.rgb *= emissionStrength;
 				lightComp = emissiveLightComp(lightComp, tex.rgb);
 			}
 		}
