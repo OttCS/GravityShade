@@ -122,10 +122,10 @@ vec3 calcShadows(vec3 c){
 float grayShade() {
 	float shading = 1.0;
 	if (rainStrength < 0.9) {
-		shading = shadowfilter(shadowtex0);
-		if (shading < 1.0) {
-			shading = (shading + shadowfilter(shadowtex1)) * 0.5;
-		}
+		shading = smoothstep(0.4, 0.6, shadowfilter(shadowtex0));
+		// if (shading < 0.9) {
+		// 	shading = smoothstep(0.4, 0.6, shadowfilter(shadowtex1)) * 0.5;
+		// }
 	}
 	shading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
 	shading *= (1.0 - rainStrength);
@@ -172,7 +172,7 @@ void main() {
 		#ifdef END
 			ambLight = vec3(0.72, 0.60, 0.72); // End
 		#else
-			ambLight = fogColor * 0.60 + 0.48; // Nether
+			ambLight = fogColor * 0.48 + vec3(0.28, 0.2, 0.24); // Nether
 		#endif
 	}
 
@@ -184,10 +184,9 @@ void main() {
 	if (fogCover < 1.0) {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
-		
-		float grayShade = grayShade() * slight + (1.0 - slight);
-		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * grayShade), emissiveLight);
-	
+
+		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * (grayShade() * slight + (1.0 - slight))), emissiveLight);
+
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
 			tex.rgb = emissiveToneMap(tex.rgb);
@@ -203,27 +202,25 @@ void main() {
 		}
 
 		// Dynamic Handlight
-		if (gl_FogFragCoord < 9.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 9.0));
-		
-		// #ifdef Shadows
-		// 	tex.rgb = calcShadows(tex.rgb);
-		// #endif
+		if (gl_FogFragCoord < 8.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 8.0));
+		if (color.rgb != vec3(color.r)) {
+			tex.rgb *= mix(vec3(1.0), color.rgb, color.a);
+		} else { // MINECRAFT DEFAULT AMBIENT OCCLUSION
+			tex.rgb *= color.rgb;
+		}
+		tex.rgb *= lightComp;
 
-		tex.rgb *= mix(vec3(1.0), color.rgb, color.a) * lightComp;
-
-		// vec2 coord = vworldpos.xz - vworldpos.y;
-		// if(mat > 0.9) {
-		// 	float move = 0.0;
-		// 	if (mat < 1.1) move = frameTimeCounter;
-		// 	float bump = 0.0;
-		// 	if (mat < 2.1) {
-		// 		bump += sin(coord.x - coord.y + cos(coord.y) - move);
-		// 	}
-		// 	normal = vec4(normalize(vec3(0.0, bump, 0.55) * tbnMatrix), 1.0);
-		// 	if (rID == 10008.0) { // Water coloration based on bump
-		// 		tex.a = 0.4;
-		// 	}
-		// }
+		vec2 coord = vworldpos.xz - vworldpos.y;
+		if(mat > 0.9) {
+			float move = 0.0;
+			if (mat < 1.1) move = frameTimeCounter;
+			vec3 bump = calcBump(coord.xy, mat < 1.1);
+			normal = vec4(normalize(bump * tbnMatrix), 1.0);
+			if (rID == 10008.0) { // Water coloration based on bump
+				tex.a = 0.9;
+				tex.rgb *= waterCol * 2.2;
+			}
+		}
 
 		// WACKY FIXES //
 		if (entityId == 11000) { // Fix Lightning

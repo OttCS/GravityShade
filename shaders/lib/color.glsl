@@ -19,10 +19,11 @@ vec3 mix3(vec3 a, vec3 b, vec3 c, float param) {
 
 vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 
-	vec3 rise = vec3(1.60, 0.96, 0.48);
-	vec3 noon = vec3(1.60, 1.60, 1.60);
-	vec3 set = vec3(0.96, 0.36, 0.96);
-	vec3 night = vec3(0.12, 0.24, 0.48);
+	vec3 noon = vec3(1.44);
+
+	vec3 rise = noon * vec3(1.0, 0.72, 0.60);
+	vec3 set = noon * vec3(0.84, 0.48, 0.84);
+	vec3 night = noon * vec3(0.12, 0.24, 0.36);
 
 	vec3 res = night;
 
@@ -54,5 +55,5 @@ vec3 getFogColor() {
 }
 
 vec3 getOverworldFogColor(vec3 dimLight, float playerSkyExposure) {
-	return mix(vec3(ambientLevel), dimLight * 0.55 + vec3(0.1, 0.1, 0.2), playerSkyExposure / 256.0);
+	return mix(vec3(ambientLevel), dimLight * 0.55 + vec3(0.1, 0.1, 0.2), smoothstep(0.0, 32.0, playerSkyExposure));
 }
