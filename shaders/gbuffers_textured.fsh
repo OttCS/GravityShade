@@ -98,11 +98,7 @@ uniform sampler2DShadow shadowtex1; //colored shadows
 uniform sampler2D shadowcolor0;
 
 float shadowfilter(sampler2DShadow shadowtexture){
-	vec2 offset = vec2(0.25, -0.25) / shadowMapResolution;	
-	return clamp(dot(vec4(shadow2D(shadowtexture,vec3(getShadowpos.xy + offset.xx, getShadowpos.z)).x,
-						  shadow2D(shadowtexture,vec3(getShadowpos.xy + offset.yx, getShadowpos.z)).x,
-						  shadow2D(shadowtexture,vec3(getShadowpos.xy + offset.xy, getShadowpos.z)).x,
-						  shadow2D(shadowtexture,vec3(getShadowpos.xy + offset.yy, getShadowpos.z)).x),vec4(0.25))*NdotL,0.0,1.0);
+	return shadow2D(shadowtexture,vec3(getShadowpos.xy, getShadowpos.z)).x * NdotL;
 }
 
 vec3 calcShadows(vec3 c){
@@ -121,12 +117,7 @@ vec3 calcShadows(vec3 c){
 
 float grayShade() {
 	float shading = 1.0;
-	if (rainStrength < 0.9) {
-		shading = smoothstep(0.4, 0.6, shadowfilter(shadowtex0));
-		// if (shading < 0.9) {
-		// 	shading = smoothstep(0.4, 0.6, shadowfilter(shadowtex1)) * 0.5;
-		// }
-	}
+	if (rainStrength < 0.9) shading = min(1.0, 2.0 * shadowfilter(shadowtex0));
 	shading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
 	shading *= (1.0 - rainStrength);
 	return shading;
@@ -136,7 +127,7 @@ vec4 encode (vec3 n){
     return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/4.0, 1.0);
 }
 
-vec3 emissiveLightComp(vec3 lightComp, vec3 color) {
+vec3 emissiveOreLightComp(vec3 lightComp, vec3 color) {
 	float maxCol = max(color.r, max(color.g, color.b));
 	if (maxCol > 0.40) {
 		if (color.b + 0.1 < min(color.r, color.g)) return vec3(emissionStrength);
@@ -185,19 +176,25 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 
-		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * (grayShade() * slight + (1.0 - slight))), emissiveLight);
+		float shade = smoothstep(0.88, 0.92, lmcoord.y);
+		if (gl_FogFragCoord < shadowDistance) {
+			shade = grayShade();
+		}
+		shade = shade * slight + (1.0 - slight);
+
+		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * shade), emissiveLight);
 
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
 			tex.rgb = emissiveToneMap(tex.rgb);
 			lightComp = vec3(lmcoord.x * emissionStrength * 0.8 + 0.2);
 		} else if (rID == 10566.0) { // Emissive ores
-			lightComp = emissiveLightComp(lightComp, tex.rgb);
+			lightComp = emissiveOreLightComp(lightComp, tex.rgb);
 		} else if(rID == 10998.0) { // Warped/Crimson Plants
 			if (tex.g > 0.2 || tex.r > 0.34) {
 				// tex.rgb = emissiveToneMap(tex.rgb);
 				tex.rgb *= emissionStrength;
-				lightComp = emissiveLightComp(lightComp, tex.rgb);
+				lightComp = vec3(emissionStrength);
 			}
 		}
 

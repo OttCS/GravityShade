@@ -42,7 +42,7 @@ const vec3 waterCol = vec3(0.05, 0.15, 0.20);
 
     #define Shadows                             //Also adjust in vertex, SHADOW_MAP_BIAS is also in vertex
     #ifdef Shadows
-    #define Colored_Shadows
+    //#define Colored_Shadows
     #define slight 0.55                         //[0.50 0.55 0.60 0.65 0.70 0.75 0.80]
     #define SHADOW_MAP_BIAS 0.80
     const int 	shadowMapResolution = 1024;		//Shadows resolution. [1024 2048 3072 4096 8192]
