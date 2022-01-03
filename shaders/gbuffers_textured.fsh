@@ -118,8 +118,8 @@ vec3 calcShadows(vec3 c){
 float grayShade() {
 	float shading = 1.0;
 	if (rainStrength < 0.9) shading = min(1.0, 2.0 * shadowfilter(shadowtex0));
-	shading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-	shading *= (1.0 - rainStrength);
+	shading *= smoothstep(0.0, 0.04, eyeBrightnessSmooth.y / 255.0);
+	shading *= 1.0 - rainStrength;
 	return shading;
 }
 
@@ -177,8 +177,8 @@ void main() {
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 
 		float shade = smoothstep(0.88, 0.92, lmcoord.y);
-		if (gl_FogFragCoord < shadowDistance) {
-			shade = grayShade();
+		if (gl_FogFragCoord < shadowDistance * 1.125) {
+			shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
 		}
 		shade = shade * slight + (1.0 - slight);
 
@@ -214,7 +214,7 @@ void main() {
 			vec3 bump = calcBump(coord.xy, mat < 1.1);
 			normal = vec4(normalize(bump * tbnMatrix), 1.0);
 			if (rID == 10008.0) { // Water coloration based on bump
-				tex.a = 0.9;
+				tex.a = 0.6;
 				tex.rgb *= waterCol * 2.2;
 			}
 		}

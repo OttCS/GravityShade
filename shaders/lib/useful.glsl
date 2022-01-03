@@ -7,3 +7,7 @@ bool isOverworld() {
 	#endif
     return true;
 }
+
+vec3 MildACES(vec3 x) {
+	return 2.2 * x * x / (x * (1.9 * x) + 0.3);
+}
