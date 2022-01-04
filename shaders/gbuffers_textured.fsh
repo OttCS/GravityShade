@@ -50,8 +50,8 @@ vec3 calcBump(vec2 coord, bool iswater) {
 	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.025;
 	float h0 = texture2D(noisetex, coord * 0.023 - mDir.xx).x;
 	h0 += texture2D(noisetex, coord * 0.107 + mDir.yx).x * 0.5;
-	h0 += texture2D(noisetex, coord * 0.391 + mDir.xy).x * 0.25;
-	h0 -= 0.875;
+	h0 += texture2D(noisetex, coord * 0.491 + mDir.xy).x * 0.2;
+	h0 -= 0.85;
 	return vec3(vec2(h0) * 0.04, 0.55);
 }
 
