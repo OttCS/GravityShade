@@ -1,16 +1,15 @@
+#version 120
+/* DRAWBUFFERS:02 */ //0=gcolor, 2=gnormal for normals
 /*
     GravityShade for the IRIS Shaders mod.
     Made by Gravity10, Code base by Sildur.
 */
 
-#version 120
-/* DRAWBUFFERS:02 */ //0=gcolor, 2=gnormal for normals
-
 #define gbuffers_textured
 #include "shaders.settings"
 
 //Setup constants
-const int	noiseTextureResolution = 128;
+const int noiseTextureResolution = 64;
 //----------------------------------------------------------------
 
 /* Don't remove me
@@ -46,41 +45,14 @@ uniform int worldTime;
 
 uniform float frameTimeCounter;
 
-mat2 rmatrix(float rad){
-	return mat2(vec2(cos(rad), -sin(rad)), vec2(sin(rad), cos(rad)));
-}
-
-float calcWaves(vec2 coord, bool iswater){
-	vec2 movement = vec2(0.0);
-		 
-	coord *= 0.262144;
-	vec2 coord0 = coord * rmatrix(1.0);
-	vec2 coord1 = coord * rmatrix(0.5);	 
-	vec2 coord2 = coord;
-		 
-	if (iswater) {
-		movement = abs(vec2(0.0, -frameTimeCounter * 0.31365)) * animationSpeed;
-		coord0 -= movement * 4.0;
-		coord1 -= movement * 1.5;
-		coord2 += movement * 0.5;
-	}
-	
-	float wave = sqrt(texture2D(noisetex,coord2 * vec2(0.045, 0.135)).x * 6.5) * 1.33;//noise texture
-	
-	return wave * 0.0157;
-}
-
-vec3 calcBump(vec2 coord, bool iswater){
-	if (mat > 2.1) return vec3(0.0, 0.0, 0.55);
-	float xDelta = 0.0;
-	float yDelta = 0.0;
-	if (mat < 2.1) {
-		const vec2 deltaPos = vec2(0.25, 0.0);
-		float h0 = calcWaves(coord, iswater);
-		xDelta = ((calcWaves(coord + deltaPos.xy, iswater)-h0)+(h0-calcWaves(coord - deltaPos.xy, iswater)));
-		yDelta = 1.4 * ((calcWaves(coord + deltaPos.yx, iswater)-h0)+(h0-calcWaves(coord - deltaPos.yx, iswater)));
-	}
-	return vec3(vec2(xDelta,yDelta)*0.45, 0.55);
+vec3 calcBump(vec2 coord, bool iswater) {
+	vec2 mDir = vec2(0.0);
+	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.025;
+	float h0 = texture2D(noisetex, coord * 0.023 - mDir.xx).x;
+	h0 += texture2D(noisetex, coord * 0.107 + mDir.yx).x * 0.5;
+	h0 += texture2D(noisetex, coord * 0.391 + mDir.xy).x * 0.25;
+	h0 -= 0.875;
+	return vec3(vec2(h0) * 0.04, 0.55);
 }
 
 #endif
@@ -88,7 +60,6 @@ vec3 calcBump(vec2 coord, bool iswater){
 vec3 blockLightMap(float val) {
 	return vec3(emissive_R * pow(val, emissive_R * 0.5),emissive_G * pow(val, emissive_G * 0.5),emissive_B * pow(val, emissive_B * 0.5))*val;
 }
-vec3 emissiveLight = blockLightMap(lmcoord.x);
 
 #ifdef Shadows
 varying float NdotL;
@@ -99,20 +70,6 @@ uniform sampler2D shadowcolor0;
 
 float shadowfilter(sampler2DShadow shadowtexture){
 	return shadow2D(shadowtexture,vec3(getShadowpos.xy, getShadowpos.z)).x * NdotL;
-}
-
-vec3 calcShadows(vec3 c){
-	vec3 finalShading = vec3(0.0);
-
-	if(NdotL > 0.0 && rainStrength < 0.9){ // Optimization, disable shadows during rain for performance boost
-		float shading = shadowfilter(shadowtex0);
-		float cshading = shadowfilter(shadowtex1);
-		finalShading = texture2D(shadowcolor0, getShadowpos.xy).rgb*(cshading-shading) + shading;
-		//avoid light leaking underground
-		finalShading *= mix(max(lmcoord.t-2.0/16.0,0.0)*1.14285714286,1.0,clamp((eyeBrightnessSmooth.y/255.0-2.0/16.)*4.0,0.0,1.0));
-		finalShading *= (1.0 - rainStrength);
-	}
-	return c * (1.0+finalShading+emissiveLight) * slight;
 }
 
 float grayShade() {
@@ -176,13 +133,13 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 
-		float shade = smoothstep(0.88, 0.92, lmcoord.y);
+		float shade = smoothstep(0.88, 0.92, lmcoord.y) * NdotL;
 		if (gl_FogFragCoord < shadowDistance * 1.125) {
 			shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
 		}
 		shade = shade * slight + (1.0 - slight);
 
-		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * shade), emissiveLight);
+		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * shade), blockLightMap(lmcoord.x));
 
 		// EMISSIVE BLOCKS WORK //
 		if (rID == 10089.0 || rID == 10090.0) {
@@ -200,24 +157,19 @@ void main() {
 
 		// Dynamic Handlight
 		if (gl_FogFragCoord < 8.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 8.0));
-		if (color.rgb != vec3(color.r)) {
-			tex.rgb *= mix(vec3(1.0), color.rgb, color.a);
-		} else { // MINECRAFT DEFAULT AMBIENT OCCLUSION
-			tex.rgb *= color.rgb;
-		}
 		tex.rgb *= lightComp;
 
 		vec2 coord = vworldpos.xz - vworldpos.y;
 		if(mat > 0.9) {
-			float move = 0.0;
-			if (mat < 1.1) move = frameTimeCounter;
 			vec3 bump = calcBump(coord.xy, mat < 1.1);
 			normal = vec4(normalize(bump * tbnMatrix), 1.0);
 			if (rID == 10008.0) { // Water coloration based on bump
 				tex.a = 0.6;
-				tex.rgb *= waterCol * 2.2;
+				tex.rgb *= waterCol * (2.2 + bump.y * 5.0);
 			}
 		}
+
+		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a);
 
 		// WACKY FIXES //
 		if (entityId == 11000) { // Fix Lightning

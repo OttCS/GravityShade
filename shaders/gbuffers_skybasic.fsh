@@ -1,6 +1,12 @@
 #version 120
+/*
+    GravityShade for the IRIS Shaders mod.
+    Made by Gravity10, Code base by Sildur.
+*/
 
 #include "shaders.settings"
+#include "lib/color.glsl"
+#include "lib/useful.glsl"
 
 varying vec4 color;
 
@@ -8,9 +14,6 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform float rainStrength;
 uniform int worldTime;
 uniform int isEyeInWater;
-
-#include "lib/color.glsl"
-#include "lib/useful.glsl"
 
 void main() {
 	bool overworld = isOverworld();

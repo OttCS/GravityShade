@@ -1,9 +1,8 @@
+#version 120
 /*
     GravityShade for the IRIS Shaders mod.
     Made by Gravity10, Code base by Sildur.
 */
-
-#version 120
 
 #define gbuffers_textured
 #include "shaders.settings"
@@ -84,7 +83,7 @@ vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
 	float distortion = ((1.0 - SHADOW_MAP_BIAS) + length(shadowpos.xy * 1.25) * SHADOW_MAP_BIAS) * 0.85;
 	shadowpos.xy /= distortion;
 	
-	NdotL = clamp(dot(norm, normalize(shadowLightPosition))*1.02-0.02,0.0,1.0);	
+	NdotL = clamp(dot(norm, normalize(shadowLightPosition))*1.01-0.01,0.0,1.0);	
 	float bias = distortion*distortion*(0.0046*tan(acos(NdotL)));
 
 	if (mcID == ENTITY_SMALLGRASS
@@ -110,6 +109,21 @@ vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
 
 	return shadowpos.xyz;
 }
+#endif
+
+#ifdef TAA
+uniform float viewWidth;
+uniform float viewHeight;
+vec2 texelSize = vec2(1.0/viewWidth,1.0/viewHeight);
+uniform int framemod8;
+const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
+								vec2(-1.,3.)/8.,
+								vec2(5.0,1.)/8.,
+								vec2(-3,-5.)/8.,
+								vec2(-5.,5.)/8.,
+								vec2(-7.,-1.)/8.,
+								vec2(3,7.)/8.,
+								vec2(7.,-7.)/8.);
 #endif
 
 void main() {
@@ -232,6 +246,10 @@ if (istopv) {
 		mat = 4.0;
 	}
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
+
+	#ifdef TAA
+		gl_Position.xy += offsets[framemod8] * gl_Position.w*texelSize;
+	#endif
 
 	//Fog
 	gl_FogFragCoord = length(position.xyz);

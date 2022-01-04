@@ -1,10 +1,9 @@
+#version 120
+/* DRAWBUFFERS:02 */ //0=gcolor, 2=gnormal for normals
 /*
     GravityShade for the IRIS Shaders mod.
     Made by Gravity10, Code base by Sildur.
 */
-
-#version 120
-/* DRAWBUFFERS:02 */ //0=gcolor, 2=gnormal for normals
 
 varying vec3 texcoord;
 uniform sampler2D texture;

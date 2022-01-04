@@ -1,29 +1,28 @@
+#version 120
 /*
     GravityShade for the IRIS Shaders mod.
     Made by Gravity10, Code base by Sildur.
 */
 
-#version 120
-
 #define final
 #include "shaders.settings"
-#include "lib/useful.glsl"
-
 
 varying vec2 texcoord;
-varying vec4 color;
+varying vec3 color;
 
-uniform sampler2D colortex0;
+uniform sampler2D colortex3;	//taa mixed with everything
+
+#ifdef Tonemap
+vec3 MildACES(vec3 x) {
+	return 2.2 * x * x / (x * (1.9 * x) + 0.3);
+}
+#endif
 
 void main() {
 
-	vec3 tex = texture2D(colortex0, texcoord).rgb * color.rgb;
+	vec3 tex = texture2D(colortex3, texcoord.xy).rgb*color;
 	#ifdef Tonemap
-		#ifdef CustomACES
-			tex.rgb = MildACES(tex.rgb);
-		#endif
+		tex.rgb = MildACES(tex);
 	#endif
 	gl_FragData[0] = vec4(tex, 1.0);
-	// gl_FragData[0] = vec4(tex, 1.0);
-
 }
