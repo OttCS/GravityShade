@@ -14,7 +14,7 @@ uniform sampler2D colortex3;	//taa mixed with everything
 
 #ifdef Tonemap
 vec3 MildACES(vec3 x) {
-	return 2.2 * x * x / (x * (1.9 * x) + 0.3);
+	return 1.8*x*x/(x*(1.5*x)+0.3);
 }
 #endif
 
