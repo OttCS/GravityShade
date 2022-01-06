@@ -46,6 +46,7 @@ uniform mat4 gbufferModelViewInverse;
 
 //moving stuff
 uniform float frameTimeCounter;
+uniform float far;
 const float PI = 3.14;
 float pi2wt = (150.79*frameTimeCounter) * animationSpeed;
 
@@ -114,7 +115,7 @@ vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
 #ifdef TAA
 uniform float viewWidth;
 uniform float viewHeight;
-vec2 texelSize = vec2(1.0/viewWidth,1.0/viewHeight);
+vec2 texelSize = vec2(0.97 / viewWidth, 0.97 / viewHeight);
 uniform int framemod8;
 const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 								vec2(-1.,3.)/8.,
@@ -240,19 +241,19 @@ if (istopv) {
 		mat = 1.0;
 	} else if(mcID == ENTITY_ICE) {
 		mat = 2.0;
-	} else if(mcID == 10042.0) { // POLISHED BLOCKS
+	} else if(mcID == 10042.0 || mcID == 10169.0) { // POLISHED BLOCKS
 		mat = 3.0;
 	} else if(mcID == 10001.0) { // METALLIC ACCENTS
 		mat = 4.0;
 	}
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * vec4(position, 1.0);
 
-	#ifdef TAA
-		gl_Position.xy += offsets[framemod8] * gl_Position.w*texelSize;
-	#endif
-
 	//Fog
 	gl_FogFragCoord = length(position.xyz);
+
+	#ifdef TAA
+		gl_Position.xy += offsets[framemod8] * gl_Position.w * texelSize;
+	#endif
 
 	color = gl_Color;
 

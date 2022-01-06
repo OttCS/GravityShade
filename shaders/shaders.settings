@@ -28,11 +28,13 @@ const vec3 waterCol = vec3(0.05, 0.15, 0.20);
 #define showFogOcclusion
 #endif
 
-#ifdef composite0
-    #define Reflections							//Toggle reflections, also adjust in gbuffers_textured.fsh
-    //#define Refractions						//Toggle refractions / distortion caused by waves.
-    //#define skyReflection						//Reflect and blend the default skycolor. Makes water waves more visible. WIP
+#define Reflections							//Toggle reflections, also adjust in gbuffers_textured.fsh
+#define WaterReflection
+#define TransparentReflections          //see block.properties, transparent blocks are assigned to ice (79)
+//#define Refractions						//Toggle refractions / distortion caused by waves.
+//#define skyReflection						//Reflect and blend the default skycolor. Makes water waves more visible. WIP
 
+#ifdef composite0
     #define Godrays							//Toggle godrays
     #define grays_intensity 0.65				//Adjust godrays intensity [0.35 0.5 0.65 0.70 0.85 1.0]
 
@@ -43,10 +45,6 @@ const vec3 waterCol = vec3(0.05, 0.15, 0.20);
 #endif
 
 #ifdef gbuffers_textured
-
-    #define Reflections                         //Toggle reflections, also adjust in composite.fsh
-        #define WaterReflection
-        #define TransparentReflections          //see block.properties, transparent blocks are assigned to ice (79)
 
     #define Shadows                             //Also adjust in vertex, SHADOW_MAP_BIAS is also in vertex
     #ifdef Shadows
@@ -73,8 +71,6 @@ const vec3 waterCol = vec3(0.05, 0.15, 0.20);
     #define Waving_Tallgrass
     #define Waving_Lanterns
     #define waves_amplitude 0.65                //[0.55 0.65 0.75 0.85 0.95 1.05 1.15 1.25 1.35 1.45 1.55 1.65 1.75 1.85 1.95 2.05]
-
-    //#define TAA
 #endif
 
 #ifdef shadowprogram

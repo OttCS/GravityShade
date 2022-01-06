@@ -8,6 +8,9 @@
 #define composite1
 #include "shaders.settings"
 
+/* Temporal anti-aliasing (TAA) and adaptive sharpening implementation based on Chocapic13, all credits belong to him:
+https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1293898-1-14-chocapic13s-shaders */
+
 varying vec2 texcoord;
 uniform sampler2D colortex0;		//everything
 
@@ -26,9 +29,9 @@ uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
 #define BLEND_FACTOR 0.1 			//[0.01 0.02 0.03 0.04 0.05 0.06 0.08 0.1 0.12 0.14 0.16] higher values = more flickering but sharper image, lower values = less flickering but the image will be blurrier
-#define MOTION_REJECTION 0.5		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5] //Higher values=sharper image in motion at the cost of flickering
-#define ANTI_GHOSTING 0.25			//[0.0 0.25 0.5 0.75 1.0] High values reduce ghosting but may create flickering
-#define FLICKER_REDUCTION 0.75		//[0.0 0.25 0.5 0.75 1.0] High values reduce flickering but may reduce sharpness
+#define MOTION_REJECTION 0.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.5] //Higher values=sharper image in motion at the cost of flickering
+#define ANTI_GHOSTING 0.1			//[0.0 0.25 0.5 0.75 1.0] High values reduce ghosting but may create flickering
+#define FLICKER_REDUCTION 1.0		//[0.0 0.25 0.5 0.75 1.0] High values reduce flickering but may reduce sharpness
 #define diagonal3(m) vec3((m)[0].x, (m)[1].y, m[2].z)
 #define  projMAD(m, v) (diagonal3(m) * (v) + (m)[3].xyz)
 
@@ -95,10 +98,10 @@ vec3 calcTAA(){
 	vec3 albedoCurrent2 = texture2D(colortex0, texcoord + vec2(texelSize.x,-texelSize.y)).rgb;
 	vec3 albedoCurrent3 = texture2D(colortex0, texcoord + vec2(-texelSize.x,-texelSize.y)).rgb;
 	vec3 albedoCurrent4 = texture2D(colortex0, texcoord + vec2(-texelSize.x,texelSize.y)).rgb;
-	vec3 albedoCurrent5 = texture2D(colortex0, texcoord + vec2(0.0,texelSize.y)).rgb;
-	vec3 albedoCurrent6 = texture2D(colortex0, texcoord + vec2(0.0,-texelSize.y)).rgb;
-	vec3 albedoCurrent7 = texture2D(colortex0, texcoord + vec2(-texelSize.x,0.0)).rgb;
-	vec3 albedoCurrent8 = texture2D(colortex0, texcoord + vec2(texelSize.x,0.0)).rgb;
+	// vec3 albedoCurrent5 = texture2D(colortex0, texcoord + vec2(0.0,texelSize.y)).rgb;
+	// vec3 albedoCurrent6 = texture2D(colortex0, texcoord + vec2(0.0,-texelSize.y)).rgb;
+	// vec3 albedoCurrent7 = texture2D(colortex0, texcoord + vec2(-texelSize.x,0.0)).rgb;
+	// vec3 albedoCurrent8 = texture2D(colortex0, texcoord + vec2(texelSize.x,0.0)).rgb;
 
 	#ifdef Adaptive_sharpening
     vec3 m1 = (albedoCurrent0 + albedoCurrent1 + albedoCurrent2 + albedoCurrent3 + albedoCurrent4 + albedoCurrent5 + albedoCurrent6 + albedoCurrent7 + albedoCurrent8)/9.0;
@@ -110,8 +113,11 @@ vec3 calcTAA(){
 	#endif
 
 	//Assuming the history color is a blend of the 3x3 neighborhood, we clamp the history to the min and max of each channel in the 3x3 neighborhood
-	vec3 cMax = max(max(max(albedoCurrent0,albedoCurrent1),albedoCurrent2),max(albedoCurrent3,max(albedoCurrent4,max(albedoCurrent5,max(albedoCurrent6,max(albedoCurrent7,albedoCurrent8))))));
-	vec3 cMin = min(min(min(albedoCurrent0,albedoCurrent1),albedoCurrent2),min(albedoCurrent3,min(albedoCurrent4,min(albedoCurrent5,min(albedoCurrent6,min(albedoCurrent7,albedoCurrent8))))));
+	// vec3 cMax = max(max(max(albedoCurrent0,albedoCurrent1),albedoCurrent2),max(albedoCurrent3,max(albedoCurrent4,max(albedoCurrent5,max(albedoCurrent6,max(albedoCurrent7,albedoCurrent8))))));
+	// vec3 cMin = min(min(min(albedoCurrent0,albedoCurrent1),albedoCurrent2),min(albedoCurrent3,min(albedoCurrent4,min(albedoCurrent5,min(albedoCurrent6,min(albedoCurrent7,albedoCurrent8))))));
+
+	vec3 cMax = max(albedoCurrent0, max(max(albedoCurrent1, albedoCurrent2), max(albedoCurrent3, albedoCurrent4)));
+	vec3 cMin = min(albedoCurrent0, min(min(albedoCurrent1, albedoCurrent2), min(albedoCurrent3, albedoCurrent4)));
 
 #if TAA_quality == 2
 	vec3 albedoPrev = FastCatmulRom(colortex3, previousPosition.xy,vec4(texelSize, 1.0/texelSize), 0.82).xyz;
