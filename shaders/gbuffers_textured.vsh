@@ -154,16 +154,9 @@ if (mcID == ENTITY_LOWERGRASS && istopv || mcID == ENTITY_UPPERGRASS)
 #endif
 if (istopv) {
 #ifdef Waving_Grass
-	if ( mcID == ENTITY_SMALLGRASS)
-			position.xyz += calcMove(vworldpos.xyz,
-				0.0041,
-				0.0070,
-				0.0044,
-				0.0038,
-				0.0063,
-				0.0000,
-				vec3(3.0,1.6,3.0),
-				vec3(0.0,0.0,0.0));
+	if ( mcID == ENTITY_SMALLGRASS) {
+		position.xyz += calcMove(vworldpos.xyz, 0.0041, 0.0070, 0.0044, 0.0038, 0.0063, 0.0000, vec3(3.0,1.6,3.0), vec3(0.0,0.0,0.0));
+	}
 #endif
 #ifdef Waving_Entities
 	if (mcID == ENTITY_SMALLENTS)

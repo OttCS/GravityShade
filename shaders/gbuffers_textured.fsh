@@ -49,10 +49,10 @@ vec3 calcBump(vec2 coord, bool iswater) {
 	vec2 mDir = vec2(0.0);
 	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.025;
 	float h0 = 0.0;
-	h0 += texture2D(noisetex, coord * 0.023 - mDir.xx).x;
-	if (gl_FogFragCoord < 64.0) {
+	h0 += texture2D(noisetex, coord * 0.023 - mDir.xx).x; // Default low res normalBump
+	if (gl_FogFragCoord < 96.0) { // 6 Chunks medium res normalBump
 		h0 += texture2D(noisetex, coord * 0.113 + mDir.yx).x * 0.6;
-		if (gl_FogFragCoord < 24.0) {
+		if (gl_FogFragCoord < 32.0) { // 2 Chunks ULTRA high res normalBump
 			h0 += texture2D(noisetex, coord * 0.527 + mDir.xy).x * 0.4;
 			h0 -= 0.2;
 		}
@@ -133,7 +133,7 @@ void main() {
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		fogCover = smoothstep(0.1, 0.997, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
+		fogCover = smoothstep(FogOcclusionStart, FogOcclusionRadius, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
 	#endif
 
 	if (fogCover < 1.0) {
