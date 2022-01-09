@@ -33,6 +33,7 @@ uniform sampler2D texture;
 uniform vec4 entityColor;
 uniform vec3 shadowLightPosition;
 uniform ivec2 eyeBrightnessSmooth;
+uniform float blindness;
 uniform float far;
 uniform float rainStrength;
 uniform int heldBlockLightValue;
@@ -133,7 +134,7 @@ void main() {
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		fogCover = smoothstep(FogOcclusionStart, FogOcclusionRadius, gl_FogFragCoord / far * (isEyeInWater * 2.0 + 1.0));
+		fogCover = getFogCover(far, gl_FogFragCoord * (isEyeInWater * 2.0 + 1.0), blindness);
 	#endif
 
 	if (fogCover < 1.0) {
