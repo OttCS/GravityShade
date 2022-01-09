@@ -164,17 +164,21 @@ void main() {
 
 		// Dynamic Handlight
 		if (gl_FogFragCoord < 8.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 8.0));
-		tex.rgb *= lightComp;
 
 		vec2 coord = vworldpos.xz - vworldpos.y;
-		if(mat > 0.9) {
+		if(mat > 0.9 && mat < 3.1) { // Standard reflections
 			float bump = calcBump(coord.xy, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
 			if (rID == 10008.0) {
-				tex.a = bump * 0.1 + 0.7;
+				tex.a = 0.7;
 				tex.rgb *= color.rgb * lightComp * 0.27 + waterCol;
 			}
+		} else if (mat > 3.9 && tex.r == tex.g && tex.r == tex.b) { // Metallic Accent Reflections
+			float bump = calcBump(coord.xy, mat < 1.1);
+			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
 		}
+
+		tex.rgb *= lightComp;
 
 		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
 
