@@ -163,16 +163,9 @@ void main() {
 		}
 
 		// // ENTITY FIXES //
-		// if (entityId == 11001) { // Fix Spiders
-		// 	if (tex.r > tex.g + tex.b) lightComp = vec3(emissionStrength);
-		// } else if (entityId == 11002) { // Fix Endermen
-		// 	if (tex.r == 1.0) {
-		// 		// tex.g *= 0.3;
-		// 		lightComp = vec3(emissionStrength);
-		// 	}
-		// } else if (entityId == 11000) { // Fix Lightning
-		// 	lightComp = vec3(emissionStrength);
-		// }
+		if (entityId == 11000) { // Fix Lightning
+			lightComp = vec3(emissionStrength);
+		}
 
 		// Dynamic Handlight
 		if (gl_FogFragCoord < 8.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 8.0));
