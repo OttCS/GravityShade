@@ -42,7 +42,7 @@ const float FogOcclusionRadius = 0.997;
 //#define skyReflection						    //Reflect and blend the default skycolor. Makes water waves more visible. WIP
 
 #ifdef composite0
-    #define Godrays							    //Toggle godrays
+    //#define Godrays							    //Toggle godrays
     #define grays_intensity 0.65			    //Adjust godrays intensity [0.35 0.5 0.65 0.70 0.85 1.0]
 
 #endif
@@ -57,7 +57,7 @@ const float FogOcclusionRadius = 0.997;
     #ifdef Shadows
     //#define Colored_Shadows
     #define slight 0.55                         //[0.50 0.55 0.60 0.65 0.70 0.75 0.80]
-    #define SHADOW_MAP_BIAS 0.80
+    #define SHADOW_MAP_BIAS 0.801
     const int 	shadowMapResolution = 1024;		//Shadows resolution. [1024 2048 3072 4096 8192]
     const float shadowDistance = 64.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
     const float shadowDistanceRenderMul = 1.0;
@@ -72,7 +72,7 @@ const float FogOcclusionRadius = 0.997;
     #define POM_DEPTH 0.30                      //[0.10 0.20 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.0]
     //#define draw_bmap                         //Draw bmap normals
 
-    #define animationSpeed 0.6                  //[0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+    #define animationSpeed 0.55                  //[0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0]
     #define Waving_Grass
     #define Waving_Entities                     //Includes: Saplings, small flowers, wheat, carrots, potatoes and beetroot.
     #define Waving_Tallgrass

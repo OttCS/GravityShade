@@ -45,21 +45,21 @@ uniform int worldTime;
 
 uniform float frameTimeCounter;
 
-vec3 calcBump(vec2 coord, bool iswater) {
+float calcBump(vec2 coord, bool iswater) {
 	vec2 mDir = vec2(0.0);
 	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.025;
 	float h0 = 0.0;
-	h0 += texture2D(noisetex, coord * 0.023 - mDir.xx).x; // Default low res normalBump
+	h0 += texture2D(noisetex, coord * vec2(0.023, 0.019) - mDir.xx).x; // Default low res normalBump
 	if (gl_FogFragCoord < 96.0) { // 6 Chunks medium res normalBump
-		h0 += texture2D(noisetex, coord * 0.113 + mDir.yx).x * 0.6;
+		h0 += texture2D(noisetex, coord * vec2(0.113, 0.117) + mDir.yx).x * 0.6;
 		if (gl_FogFragCoord < 32.0) { // 2 Chunks ULTRA high res normalBump
-			h0 += texture2D(noisetex, coord * 0.527 + mDir.xy).x * 0.4;
+			h0 += texture2D(noisetex, coord * vec2(0.527, 0.371) + mDir.xy).x * 0.4;
 			h0 -= 0.2;
 		}
 		h0 -= 0.3;
 	}
 	h0 -= 0.5;
-	return vec3(vec2(h0) * 0.03, 0.55);
+	return h0;
 }
 
 #endif
@@ -140,7 +140,7 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 
-		float shade = smoothstep(0.88, 0.92, lmcoord.y) * NdotL;
+		float shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
 		if (gl_FogFragCoord < shadowDistance * 1.125) {
 			shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
 		}
@@ -168,26 +168,20 @@ void main() {
 
 		vec2 coord = vworldpos.xz - vworldpos.y;
 		if(mat > 0.9) {
-			vec3 bump = calcBump(coord.xy, mat < 1.1);
-			normal = vec4(normalize(bump * tbnMatrix), 1.0);
-			if (rID == 10008.0) { // Water coloration based on bump
-				tex.a = 0.6;
-				tex.rgb *= waterCol * (bump.y * 2.0) + color.rgb * 0.5;
+			float bump = calcBump(coord.xy, mat < 1.1);
+			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
+			if (rID == 10008.0) {
+				tex.a = bump * 0.1 + 0.7;
+				tex.rgb *= color.rgb * lightComp * 0.27 + waterCol;
 			}
 		}
 
-		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a);
+		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
 
 		// WACKY FIXES //
 		if (entityId == 11000) { // Fix Lightning
 			tex = vec4(0.9, 0.8, 1.0, 0.5);
 		}
-	// if (gl_FogFragCoord < 48.0) {
-		// 	tex.r = 1.0;
-		// if (gl_FogFragCoord < 16.0) {
-		// 	tex.rg = vec2(1.0);
-		// }
-	// }
 	} // Done with rendered effects
 
 	vec3 fCol;
