@@ -125,7 +125,7 @@ void main() {
 		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
 	} else {
 		#ifdef END
-			ambLight = vec3(0.72, 0.60, 0.72); // End
+			ambLight = vec3(0.60, 0.48, 0.60); // End
 		#else
 			ambLight = fogColor * 0.48 + vec3(0.28, 0.2, 0.24); // Nether
 		#endif
@@ -162,9 +162,22 @@ void main() {
 			}
 		}
 
+		// // ENTITY FIXES //
+		// if (entityId == 11001) { // Fix Spiders
+		// 	if (tex.r > tex.g + tex.b) lightComp = vec3(emissionStrength);
+		// } else if (entityId == 11002) { // Fix Endermen
+		// 	if (tex.r == 1.0) {
+		// 		// tex.g *= 0.3;
+		// 		lightComp = vec3(emissionStrength);
+		// 	}
+		// } else if (entityId == 11000) { // Fix Lightning
+		// 	lightComp = vec3(emissionStrength);
+		// }
+
 		// Dynamic Handlight
 		if (gl_FogFragCoord < 8.0 && (heldBlockLightValue > 0 || heldBlockLightValue2 > 0)) lightComp = max(lightComp, blockLightMap(max(heldBlockLightValue, heldBlockLightValue2) / 14.0 - gl_FogFragCoord / 8.0));
 
+		// Normal Bumping
 		vec2 coord = vworldpos.xz - vworldpos.y;
 		if(mat > 0.9 && mat < 3.1) { // Standard reflections
 			float bump = calcBump(coord.xy, mat < 1.1);
@@ -181,11 +194,6 @@ void main() {
 		tex.rgb *= lightComp;
 
 		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
-
-		// WACKY FIXES //
-		if (entityId == 11000) { // Fix Lightning
-			tex = vec4(0.9, 0.8, 1.0, 0.5);
-		}
 	} // Done with rendered effects
 
 	vec3 fCol;
