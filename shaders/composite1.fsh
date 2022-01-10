@@ -121,7 +121,7 @@ vec3 calcTAA(){
 	// vec3 cMin = min(albedoCurrent0, min(min(albedoCurrent1, albedoCurrent2), min(albedoCurrent3, albedoCurrent4)));
 
 #if TAA_quality == 2
-	vec3 albedoPrev = FastCatmulRom(colortex3, previousPosition.xy,vec4(texelSize, 1.0/texelSize), 0.82).xyz;
+	vec3 albedoPrev = FastCatmulRom(colortex3, previousPosition.xy,vec4(texelSize, 1.0/texelSize), 0.12).xyz;
 #elif TAA_quality == 1
 	vec3 albedoPrev = texture2D(colortex3, previousPosition.xy).rgb;
 #endif	

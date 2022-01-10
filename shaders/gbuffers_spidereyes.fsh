@@ -52,7 +52,7 @@ void main() {
 
 	float fogCover = 0.0;
 	#ifdef Fog
-		fogCover = getFogCover(far, gl_FogFragCoord * (isEyeInWater * 2.0 + 1.0), blindness);
+		fogCover = getFogCover(far, gl_FogFragCoord, blindness);
 	#endif
 
 	if (fogCover < 1.0) {
