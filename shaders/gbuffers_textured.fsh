@@ -173,13 +173,14 @@ void main() {
 
 		// Normal Bumping
 		vec2 coord = vworldpos.xz - vworldpos.y;
+		// coord = floor(coord * 16.0) * 0.0625;
 		if(mat > 0.9 && mat < 3.1) { // Standard reflections
 			float bump = calcBump(coord.xy, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
 			if (rID == 10008.0) {
 				tex.a = 0.7;
 				tex.rgb *= color.rgb * 0.47 + waterCol;
-				if (bump > 0.55) tex.rgb += lightComp;
+				if (bump > 0.5) tex.rgb = vec3(1.0);
 			}
 		} else if (mat > 3.9 && tex.r == tex.g && tex.r == tex.b) { // Metallic Accent Reflections
 			float bump = calcBump(coord.xy, mat < 1.1);

@@ -19,7 +19,7 @@ vec3 mix3(vec3 a, vec3 b, vec3 c, float param) {
 
 vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 
-	vec3 noon = vec3(1.44);
+	vec3 noon = vec3(1.44 - 0.48 * rainStrength);
 
 	vec3 rise = noon * vec3(1.0, 0.72, 0.60);
 	vec3 set = noon * vec3(0.84, 0.48, 0.84);
@@ -35,7 +35,7 @@ vec3 getOverworldSkyLighting(int tick, float rainStrength) {
 		res = mix3(noon, set, night, smoothstep(13065.0, 15255.0, tick));
 	}
 
-	return res * mix(vec3(1.0), vec3(0.60, 0.84, 0.72), rainStrength);
+	return res;
 }
 
 vec3 currentSkyLight(int x, float rain) {
