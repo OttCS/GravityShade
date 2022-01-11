@@ -84,7 +84,7 @@ float grayShade() {
 	float shading = 1.0;
 	if (rainStrength < 0.9) shading = min(1.0, 2.0 * shadowfilter(shadowtex0));
 	shading *= smoothstep(0.0, 0.04, eyeBrightnessSmooth.y / 255.0);
-	shading *= 1.0 - rainStrength;
+	shading = mix(shading, 1.0, rainStrength);
 	return shading;
 }
 
