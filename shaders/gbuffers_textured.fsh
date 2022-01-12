@@ -6,6 +6,7 @@
 */
 
 #define gbuffers_textured
+#define shadowprogram
 #include "shaders.settings"
 
 //Setup constants
@@ -87,6 +88,7 @@ float grayShade() {
 	shading = mix(shading, 1.0, rainStrength);
 	return shading;
 }
+#endif
 
 vec4 encode (vec3 n){
     return vec4(n.xy*inversesqrt(n.z*8.0+8.0) + 0.5, mat/4.0, 1.0);
@@ -141,11 +143,16 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
 		tex.rgb = mix(tex.rgb,entityColor.rgb,entityColor.a); // Fix for hurt
 
-		float shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
-		if (gl_FogFragCoord < shadowDistance * 1.125) {
-			shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
+		float shade = 1.0;
+		#ifdef Shadows
+		if (overworld) {
+			shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
+			if (gl_FogFragCoord < shadowDistance * 1.125) {
+				shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
+			}
+			shade = shade * slight + (1.0 - slight);
 		}
-		shade = shade * slight + (1.0 - slight);
+		#endif
 
 		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * shade), blockLightMap(lmcoord.x));
 

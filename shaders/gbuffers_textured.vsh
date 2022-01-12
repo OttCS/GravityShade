@@ -5,6 +5,7 @@
 */
 
 #define gbuffers_textured
+#define shadowprogram
 #include "shaders.settings"
 
 //Moving entities IDs
@@ -126,6 +127,8 @@ const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 								vec2(3,7.)/8.,
 								vec2(7.,-7.)/8.);
 #endif
+
+#include "lib/useful.glsl"
 
 void main() {
 
@@ -261,7 +264,8 @@ if (istopv) {
 					 tangent.y, binormal.y, normal.y,
 					 tangent.z, binormal.z, normal.z);					 
 	
-#ifdef Shadows
-	getShadowpos = calcShadows(position, normal);
-#endif
+
+	#ifdef Shadows
+		if (isOverworld()) getShadowpos = calcShadows(position, normal);
+	#endif
 }

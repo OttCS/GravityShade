@@ -51,13 +51,15 @@ const float FogOcclusionRadius = 0.997;
     // Nothing cloud-specific
 #endif
 
-#ifdef gbuffers_textured
+#ifdef shadowprogram
+    //#define Shadows
+    #define SHADOW_MAP_BIAS 0.80
+    #define grass_shadows
+#endif
 
-    #define Shadows                             //Also adjust in vertex, SHADOW_MAP_BIAS is also in vertex
+#ifdef gbuffers_textured
     #ifdef Shadows
-    //#define Colored_Shadows
     #define slight 0.55                         //[0.50 0.55 0.60 0.65 0.70 0.75 0.80]
-    #define SHADOW_MAP_BIAS 0.801
     const int 	shadowMapResolution = 1024;		//Shadows resolution. [1024 2048 3072 4096 8192]
     const float shadowDistance = 64.0;			//Draw distance of shadows.[60.0 90.0 120.0 150.0 180.0 210.0]
     const float shadowDistanceRenderMul = 1.0;
@@ -78,10 +80,4 @@ const float FogOcclusionRadius = 0.997;
     #define Waving_Tallgrass
     #define Waving_Lanterns
     #define waves_amplitude 0.65                //[0.55 0.65 0.75 0.85 0.95 1.05 1.15 1.25 1.35 1.45 1.55 1.65 1.75 1.85 1.95 2.05]
-#endif
-
-#ifdef shadowprogram
-    #define Shadows
-    #define SHADOW_MAP_BIAS 0.80
-    #define grass_shadows
 #endif
