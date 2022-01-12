@@ -52,7 +52,7 @@ const float FogOcclusionRadius = 0.997;
 #endif
 
 #ifdef shadowprogram
-    //#define Shadows
+    #define Shadows
     #define SHADOW_MAP_BIAS 0.80
     #define grass_shadows
 #endif

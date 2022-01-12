@@ -6,6 +6,7 @@
 
 #define shadowprogram
 #include "shaders.settings"
+#include "lib/useful.glsl"
 
 varying vec3 texcoord;
 attribute vec4 mc_Entity;
@@ -21,7 +22,7 @@ void main() {
 
 vec4 position = gl_ModelViewProjectionMatrix * gl_Vertex;
 #ifdef Shadows
-	 position.xy = calcShadowDistortion(position.xy);
+	if (isOverworld()) position.xy = calcShadowDistortion(position.xy);
 #endif
 
 	gl_Position = position;
