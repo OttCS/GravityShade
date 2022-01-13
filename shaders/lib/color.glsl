@@ -55,5 +55,5 @@ vec3 getFogColor() {
 }
 
 vec3 getOverworldFogColor(vec3 dimLight, float playerSkyExposure) {
-	return mix(vec3(ambientLevel), dimLight * vec3(0.55, 0.55, 0.8), min(1.0, playerSkyExposure));
+	return mix(vec3(ambientLevel), dimLight * (vec3(0.48, 0.48, 0.60) * fogColor + 0.24), min(1.0, playerSkyExposure));
 }

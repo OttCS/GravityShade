@@ -4,4 +4,5 @@
 */
 
 #define NETHER
+#define NOSKYLIGHT
 #include "/gbuffers_textured.vsh"

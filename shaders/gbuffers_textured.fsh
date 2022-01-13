@@ -146,7 +146,7 @@ void main() {
 		float shade = 1.0;
 		#ifdef Shadows
 		if (overworld) {
-			shade = smoothstep(0.92, 0.94, lmcoord.y) * (NdotL + 0.05);
+			shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
 			// if (gl_FogFragCoord < shadowDistance * 1.125) {
 			// 	shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
 			// }

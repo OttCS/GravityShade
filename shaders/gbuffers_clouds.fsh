@@ -20,7 +20,7 @@ uniform int worldTime;
 
 void main() {
 
-	gl_FragData[0] = texture2D(texture, texcoord.xy)*vec4(currentSkyLight(worldTime, rainStrength), 1.0);
+	gl_FragData[0] = texture2D(texture, texcoord.xy)*vec4(currentSkyLight(worldTime, rainStrength), 0.87);
 	gl_FragData[1] = vec4(0.0);
 
 }

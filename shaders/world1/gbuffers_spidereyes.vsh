@@ -4,4 +4,5 @@
 */
 
 #define END
+#define NOSKYLIGHT
 #include "/gbuffers_spidereyes.vsh"
