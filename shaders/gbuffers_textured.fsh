@@ -105,6 +105,11 @@ vec3 emissiveOreLightComp(vec3 lightComp, vec3 color) {
 	return lightComp;
 }
 
+vec3 emissiveNetherOreLightComp(vec3 lightComp, vec3 color) {
+	if (color.g > 0.5) return vec3(emissionStrength);
+	return lightComp;
+}
+
 vec3 emissiveToneMap(vec3 color) {
 	return color * (color + 0.5);
 }
@@ -130,7 +135,7 @@ void main() {
 		#ifdef END
 			ambLight = vec3(0.60, 0.48, 0.60); // End
 		#else
-			ambLight = vec3(0.48); // Nether
+			ambLight = vec3(0.42); // Nether
 		#endif
 	}
 
@@ -146,11 +151,14 @@ void main() {
 		float shade = 1.0;
 		#ifdef Shadows
 		if (overworld) {
-			shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
+			shade = lmcoord.y * slight;
+			shade += (1.0 - slight) * smoothstep(0.88, 0.94, lmcoord.y);
+			shade *= max(slight, NdotL + 0.05);
+			// shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
 			// if (gl_FogFragCoord < shadowDistance * 1.125) {
 			// 	shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
 			// }
-			shade = shade * slight + (1.0 - slight);
+			// shade = shade * slight + (1.0 - slight);
 		}
 		#endif
 
@@ -162,6 +170,8 @@ void main() {
 			lightComp = vec3(lmcoord.x * emissionStrength * 0.8 + 0.2);
 		} else if (rID == 10566.0) { // Emissive ores
 			lightComp = emissiveOreLightComp(lightComp, tex.rgb);
+		} else if (rID == 10153.0) {
+			lightComp = emissiveNetherOreLightComp(lightComp, tex.rgb);
 		}
 
 		// // ENTITY FIXES //
@@ -185,9 +195,11 @@ void main() {
 			float bump = calcBump(coord.xy, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
 			if (rID == 10008.0) {
-				tex.a = 0.7;
+				tex.a = 0.5;
 				tex.rgb *= color.rgb * 0.47 + waterCol;
-				if (bump > 0.5) tex.rgb = vec3(1.0);
+				if (bump > 0.55) {
+					tex.rgba = vec4(1.0);
+				}
 			}
 		} else if (mat > 3.9 && tex.r == tex.g && tex.r == tex.b) { // Metallic Accent Reflections
 			float bump = calcBump(coord.xy, mat < 1.1);

@@ -27,8 +27,8 @@ const vec3 waterCol = vec3(0.05, 0.15, 0.20);
 
 #define Fog                                     //Toggle default fog.
 
-const float FogOcclusionStart = 0.475;
-const float FogOcclusionRadius = 0.997;
+const float FogOcclusionStart = 0.625;          // Fog starts 5/8 of the render distance away
+const float FogOcclusionRadius = 0.99;          // Completely occludes one 100th of the render distance for visually smoother chunk loading
 
 //#define debugMode                              // Debugging mode for development
 #ifdef debugMode

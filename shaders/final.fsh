@@ -27,7 +27,6 @@ vec3 ACESFilm(vec3 x)
 vec3 MildACES(vec3 x) {
 	return 1.08*x*x/(x*(1.5*x)+0.3)+0.4*x;
 }
-#endif
 
 vec3 FilmicLum(vec3 x) {
     // Credit for true Luminance goes to Darel Finley, https://alienryderflex.com/hsp.html
@@ -35,6 +34,7 @@ vec3 FilmicLum(vec3 x) {
     float c = 0.48; // Curve strength
     return (c * (1.0 - l)+ 1.0) * mix(x, vec3(l), c * 0.12);
 }
+#endif
 
 void main() {
 
