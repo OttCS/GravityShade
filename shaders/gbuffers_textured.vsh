@@ -72,45 +72,7 @@ vec3 calcMove(in vec3 pos, in float f0, in float f1, in float f2, in float f3, i
 
 #ifdef Shadows
 varying float NdotL;
-varying vec3 getShadowpos;
 uniform vec3 shadowLightPosition;
-uniform mat4 shadowProjection;
-uniform mat4 shadowModelView;
-
-#define diagonal3(mat) vec3((mat)[0].x, (mat)[1].y, (mat)[2].z)
-vec3 calcShadows(in vec3 shadowpos, in vec3 norm){
-	shadowpos = mat3(shadowModelView) * shadowpos + shadowModelView[3].xyz;
-	shadowpos = diagonal3(shadowProjection) * shadowpos + shadowProjection[3].xyz;
-
-	float distortion = ((1.0 - SHADOW_MAP_BIAS) + length(shadowpos.xy * 1.25) * SHADOW_MAP_BIAS) * 0.85;
-	shadowpos.xy /= distortion;
-	
-	NdotL = clamp(dot(norm, normalize(shadowLightPosition))*1.01-0.01,0.0,1.0);	
-	float bias = distortion*distortion*(0.0046*tan(acos(NdotL)));
-
-	if (mcID == ENTITY_SMALLGRASS
-	|| mcID == ENTITY_LOWERGRASS
-	|| mcID == ENTITY_UPPERGRASS
-	|| mcID == ENTITY_SMALLENTS
-	|| mcID == ENTITY_LEAVES
-	|| mcID == ENTITY_VINES
-	|| mcID == ENTITY_LILYPAD
-	|| mcID == ENTITY_FIRE
-	|| mcID == ENTITY_WAVING_LANTERN	
-	|| mcID == ENTITY_EMISSIVE	
-	|| mcID == 10030.0	//cobweb	
-	|| mcID == 10115.0 //nether wart
-	|| mcID == 10576.0 //spore blossom	
-	|| mcID == 10006.0) {
-		NdotL = 0.75;
-		bias = 0.0010;
-	}
-	
-	shadowpos.xyz = shadowpos.xyz * 0.5 + 0.5;
-	shadowpos.z -= bias;
-
-	return shadowpos.xyz;
-}
 #endif
 
 #ifdef TAA
@@ -266,6 +228,25 @@ if (istopv) {
 	
 
 	#ifdef Shadows
-		if (isOverworld()) getShadowpos = calcShadows(position, normal);
+		#ifndef NOSKYLIGHT // Handle Skylit dimensions
+			if (mcID == ENTITY_SMALLGRASS
+			|| mcID == ENTITY_LOWERGRASS
+			|| mcID == ENTITY_UPPERGRASS
+			|| mcID == ENTITY_SMALLENTS
+			|| mcID == ENTITY_LEAVES
+			|| mcID == ENTITY_VINES
+			|| mcID == ENTITY_LILYPAD
+			|| mcID == ENTITY_FIRE
+			|| mcID == ENTITY_WAVING_LANTERN	
+			|| mcID == ENTITY_EMISSIVE	
+			|| mcID == 10030.0	//cobweb	
+			|| mcID == 10115.0 //nether wart
+			|| mcID == 10576.0 //spore blossom	
+			|| mcID == 10006.0) {
+				NdotL = 0.7;
+			} else {
+				NdotL = clamp(dot(normal, normalize(shadowLightPosition))*1.01-0.01,0.0,1.0);
+			}
+		#endif
 	#endif
 }

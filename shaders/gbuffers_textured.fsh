@@ -72,22 +72,6 @@ vec3 blockLightMap(float val) {
 
 #ifdef Shadows
 varying float NdotL;
-varying vec3 getShadowpos;
-uniform sampler2DShadow shadowtex0;	//normal shadows
-uniform sampler2DShadow shadowtex1; //colored shadows
-uniform sampler2D shadowcolor0;
-
-float shadowfilter(sampler2DShadow shadowtexture){
-	return shadow2D(shadowtexture,vec3(getShadowpos.xy, getShadowpos.z)).x * NdotL;
-}
-
-float grayShade() {
-	float shading = 1.0;
-	if (rainStrength < 0.9) shading = min(1.0, 2.0 * shadowfilter(shadowtex0));
-	shading *= smoothstep(0.0, 0.04, eyeBrightnessSmooth.y / 255.0);
-	shading = mix(shading, 1.0, rainStrength);
-	return shading;
-}
 #endif
 
 vec4 encode (vec3 n){
@@ -118,7 +102,6 @@ vec3 emissiveToneMap(vec3 color) {
 #include "lib/useful.glsl"
 
 void main() {
-	bool overworld = isOverworld();
 
 	vec4 tex = vec4(0.0);
 	vec4 normal = vec4(0.0);
@@ -129,15 +112,15 @@ void main() {
 
 	float rID = round(mcID); // Stupid varying floats are't precise enough
 
-	if (overworld) {
-		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
-	} else {
+	#ifdef NOSKYLIGHT
 		#ifdef END
 			ambLight = vec3(0.60, 0.48, 0.60); // End
 		#else
 			ambLight = vec3(0.42); // Nether
 		#endif
-	}
+	#else
+		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
+	#endif
 
 	float fogCover = 0.0;
 	#ifdef Fog
@@ -150,16 +133,11 @@ void main() {
 
 		float shade = 1.0;
 		#ifdef Shadows
-		if (overworld) {
-			shade = lmcoord.y * slight;
-			shade += (1.0 - slight) * smoothstep(0.88, 0.94, lmcoord.y);
-			shade *= max(slight, NdotL + 0.05);
-			// shade = smoothstep(0.88, 0.92, lmcoord.y) * (NdotL + 0.05);
-			// if (gl_FogFragCoord < shadowDistance * 1.125) {
-			// 	shade = mix(grayShade(), shade, smoothstep(1.0, 1.125, gl_FogFragCoord / shadowDistance));
-			// }
-			// shade = shade * slight + (1.0 - slight);
-		}
+			#ifndef NOSKYLIGHT
+				shade = lmcoord.y * slight;
+				shade += (1.0 - slight) * smoothstep(0.88, 0.94, lmcoord.y);
+				shade *= max(slight, NdotL + 0.05);
+			#endif
 		#endif
 
 		vec3 lightComp = max(mix(ambLight, skyLight, lmcoord.y * shade), blockLightMap(lmcoord.x));
@@ -213,11 +191,11 @@ void main() {
 
 	vec3 fCol;
 	#ifdef Fog
-		if (overworld) {
-			fCol = getOverworldFogColor(skyLight, eyeBrightnessSmooth.y);
-		} else {
+		#ifdef NOSKYLIGHT
 			fCol = getFogColor();
-		}
+		#else
+			fCol = getOverworldFogColor(skyLight, eyeBrightnessSmooth.y); // Overworld
+		#endif
 		if (isEyeInWater == 1) fCol *= waterCol;
 	#endif
 

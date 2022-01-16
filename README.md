@@ -5,7 +5,7 @@
   <a href="https://github.com/OttCS/GravityShade/releases">Other Releases</a> | 
   <a href="https://github.com/OttCS/GravityShade/issues">Issues/Features</a> | 
   <a href="https://github.com/OttCS/GS-Gallery">Gallery</a> | 
-  <a href="https://github.com/OttCS/GravityShade/blob/DEV/README.md">Changelog</a>
+  <a href="https://github.com/OttCS/GravityShade/blob/DEV/changelog.md">Changelog</a>
 </h4>
 <img src="https://raw.githubusercontent.com/OttCS/GS-Gallery/main/poster.webp" />
 <h2>Why ANOTHER Shaderpack</h2>

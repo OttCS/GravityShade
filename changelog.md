@@ -1,4 +1,33 @@
 # GravityShade Changelog
+
+## DEV Edition
+
+WIP
+
+## Version 22.1.16
+
+### Major Changes
+
+Emissive Nether Ores have been added, similar to standard overworld emissive ores.
+Performance optimized fixed shadows: Shadows don't move throughout the day and are based on the skylight value. INCREDIBLE performance in skylit dimensions, almost 0 impact.
+Spider, Enderman, and Magma Cube eyes are now emissive.
+Water has "foam" as part of the normal bumping process.
+Metallic Reflections are implemented: chest latches and rail (metallic parts?) are reflective.
+Adaptive normal bumping for better performance on higher render distances.
+A custom tonemapping function has been implemented, called the FilmicLum ToneMap. Curves based on true luminosity instead of linear RGB values, and desaturates the more intense of a curve is used (typically reflects how human vision is almost black and hite in very low light).
+
+### Minor Changes
+
+Rain's performance impact on overworld skylighting has been reduced.
+Blocklight color has been changed to slightly more neutral, still warm.
+Added support for the blindness effect, just makes the fog start at the player and be completely opaque 16 blocks from the player. (Support in advance for the deep dark update!)
+
+### Bug Fixes
+
+Error found and fixed that caused a fatal error when entering non-overworld dimensions.
+Fixed lightning entityID check so that it is emissive instead of being recolored.
+Tonemapping bug fixed where required functions could be unavailable.
+
 ## Version 21.12.20
 
 ### Major Changes

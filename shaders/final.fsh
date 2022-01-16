@@ -40,7 +40,7 @@ void main() {
 
 	vec3 tex = texture2D(colortex3, texcoord.xy).rgb*color;
 	#ifdef Tonemap
-        #ifdef CustomACES
+        #ifdef FilmicLumTM
 		    tex.rgb = FilmicLum(tex);
         #endif
 	#endif
