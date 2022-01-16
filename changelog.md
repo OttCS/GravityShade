@@ -2,6 +2,16 @@
 
 ## DEV Edition
 
+### Major Changes
+
+WIP
+
+### Minor Changes
+
+Code formatting changes for clarity.
+
+### Bug Fixes
+
 WIP
 
 ## Version 22.1.16
