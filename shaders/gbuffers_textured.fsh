@@ -169,7 +169,7 @@ void main() {
 
 		// Normal Bumping
 		vec2 coord = vworldpos.xz - vworldpos.y;
-		// coord = floor(coord * 16.0) * 0.0625;
+		coord = floor(coord * 16.0) * 0.0625;
 		if(mat > 0.9 && mat < 3.1) { // Standard reflections
 			float bump = calcBump(coord, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump * 0.03), 0.55) * tbnMatrix), 1.0);
