@@ -4,15 +4,21 @@
 
 ### Major Changes
 
-WIP
+Added Night Vision effect support.
+
+Rewrote water shader to provide better performance on recoloring.
 
 ### Minor Changes
 
 Code formatting changes for clarity.
 
+Disabled TAA by default.
+
 ### Bug Fixes
 
-WIP
+Moved stonecutters and grindstones to the metallic reflective category, as the wood accents shouldn't reflect.
+
+Cave_Vines and Cave_Vines_Plant (with berries) have been removed from emissive blocks due to a weird miscoloring issue.
 
 ## Version 22.1.16
 

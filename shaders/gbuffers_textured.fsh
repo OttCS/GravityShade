@@ -35,6 +35,7 @@ uniform vec4 entityColor;
 uniform vec3 shadowLightPosition;
 uniform ivec2 eyeBrightnessSmooth;
 uniform float blindness;
+uniform float nightVision;
 uniform float far;
 uniform float rainStrength;
 uniform int heldBlockLightValue;
@@ -173,10 +174,11 @@ void main() {
 			float bump = calcBump(coord, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump * 0.03), 0.55) * tbnMatrix), 1.0);
 			if (rID == 10008.0) {
-				tex.a = 0.5;
+				tex.a = 0.55;
 				tex.rgb *= color.rgb * 0.47 + waterCol;
 				if (bump > 0.55) {
-					tex.rgba = vec4(1.0);
+					tex.rgba += lmcoord.y;
+					tex.a = bump;
 				}
 			}
 		} else if (mat > 3.9 && tex.r == tex.g && tex.r == tex.b) { // Metallic Accent Reflections
@@ -184,7 +186,7 @@ void main() {
 			normal = vec4(normalize(vec3(vec2(bump) * 0.03, 0.55) * tbnMatrix), 1.0);
 		}
 
-		tex.rgb *= lightComp;
+		tex.rgb *= max(lightComp, vec3(nightVision * slight));
 
 		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
 	} // Done with rendered effects

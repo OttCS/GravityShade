@@ -3,7 +3,7 @@
     Made by Gravity10, Code base by Sildur.
 */
 
-#define TAA                                     //Toggle temporal anti-aliasing (TAA)
+//#define TAA                                     //Toggle temporal anti-aliasing (TAA)
 #define TAA_quality	1                           //[1 2] Fast is more blurry during movement compared to fancy.
 
 #ifdef final
