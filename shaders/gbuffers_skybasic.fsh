@@ -16,16 +16,19 @@ uniform int worldTime;
 uniform int isEyeInWater;
 
 void main() {
-	bool overworld = isOverworld();
 	vec3 fCol;
-	if (overworld) {
+	#ifndef NOSKYLIGHT
 		vec3 skyLight = currentSkyLight(worldTime, rainStrength);
 		fCol = getOverworldFogColor(skyLight, eyeBrightnessSmooth.y);
 		if (isEyeInWater == 1) fCol *= waterCol * (skyLight + 1.8);
 		fCol = mix(color.rgb, fCol, clamp((gl_FogFragCoord) * 0.04, 0.0, 1.0));
-	} else {
-		fCol = getFogColor();
-	}
+	#else
+		#ifdef NETHER
+			fCol = vec3(0.48, 0.12, 0.24);
+		#else
+			fCol = vec3(0.24, 0.12, 0.48);
+		#endif
+	#endif
 	gl_FragData[0] = vec4(fCol, 1.0);
     gl_FragData[1] = vec4(0.0);
 

@@ -50,7 +50,7 @@ uniform float frameTimeCounter;
 
 float calcBump(vec2 coord, bool iswater) {
 	vec2 mDir = vec2(0.0);
-	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.025;
+	if (iswater) mDir.x = frameTimeCounter * animationSpeed * 0.015;
 	float h0 = 0.0;
 	h0 += texture2D(noisetex, coord * vec2(0.023, 0.019) - mDir.xx).x; // Default low res normalBump
 	if (gl_FogFragCoord < 96.0) { // 6 Chunks medium res normalBump
@@ -117,7 +117,7 @@ void main() {
 		#ifdef END
 			ambLight = vec3(0.60, 0.48, 0.60); // End
 		#else
-			ambLight = vec3(0.42); // Nether
+			ambLight = vec3(0.36); // Nether
 		#endif
 	#else
 		skyLight = currentSkyLight(worldTime, rainStrength); // Overworld
@@ -136,7 +136,7 @@ void main() {
 		#ifdef Shadows
 			#ifndef NOSKYLIGHT
 				shade = lmcoord.y * slight;
-				shade += (1.0 - slight) * smoothstep(0.88, 0.94, lmcoord.y);
+				shade += (1.0 - slight) * sqrtFast(smoothstep(0.82, 0.92, lmcoord.y));
 				shade *= max(slight, NdotL + 0.05);
 			#endif
 		#endif
@@ -153,8 +153,13 @@ void main() {
 			lightComp = emissiveNetherOreLightComp(lightComp, tex.rgb);
 		}
 
-		// // ENTITY FIXES //
-		if (entityId == 11046) {
+		// ENTITY FIXES //
+		if (entityId == 11110) { // Drowned
+			float luma = getLum(tex.rgb);
+			if (luma > 0.7) {
+				lightComp = vec3(emissionStrength);
+			}
+		} else if (entityId == 11046) { // Magma Cubes
 			if (tex.r > 0.5) {
 				lightComp = vec3(emissionStrength);
 			} else {
@@ -173,11 +178,12 @@ void main() {
 			float bump = calcBump(coord, mat < 1.1);
 			normal = vec4(normalize(vec3(vec2(bump * 0.03), 0.55) * tbnMatrix), 1.0);
 			if (rID == 10008.0) {
-				tex.a = 0.55;
+				tex.a = 0.7;
 				tex.rgb *= color.rgb * 0.47 + waterCol;
-				if (bump > 0.55) {
-					tex.rgba += lmcoord.y;
-					tex.a = bump;
+				bump = ceil(bump * 7.0) * 0.14286;
+				if (bump > 0.5) {
+					tex.rgba += lmcoord.y * bump;
+					tex.a += bump * 0.3;
 				}
 			}
 		} else if (mat > 3.9 && tex.r == tex.g && tex.r == tex.b) { // Metallic Accent Reflections
@@ -186,8 +192,11 @@ void main() {
 		}
 
 		tex.rgb *= max(lightComp, vec3(nightVision * slight));
-
-		if (rID != 10008.0) tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
+		if (color.r == color.g && color.g == color.b) {
+			tex.rgb *= vec3((1.0 - slight) * color.r + slight);
+		} else if (rID != 10008.0) {
+			tex.rgb *= mix(vec3(1.0), color.rgb, color.a); // Avoid recoloring water
+		}
 	} // Done with rendered effects
 
 	vec3 fCol;

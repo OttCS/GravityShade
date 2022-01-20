@@ -233,9 +233,6 @@ if (istopv) {
 			|| mcID == ENTITY_LOWERGRASS
 			|| mcID == ENTITY_UPPERGRASS
 			|| mcID == ENTITY_SMALLENTS
-			|| mcID == ENTITY_LEAVES
-			|| mcID == ENTITY_VINES
-			|| mcID == ENTITY_LILYPAD
 			|| mcID == ENTITY_FIRE
 			|| mcID == ENTITY_WAVING_LANTERN	
 			|| mcID == ENTITY_EMISSIVE	

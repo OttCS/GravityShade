@@ -59,9 +59,9 @@ vec4 raytrace(vec4 color, vec3 normal) {
 	vec3 tvector = rvector;
     int sr = 0;
 	const int maxf = 3;				//number of refinements
-	const float ref = 0.2;			//refinement multiplier
-	const int rsteps = 15;
-	const float inc = 2.2;			//increasement factor at each step	
+	const float ref = 0.4;			//refinement multiplier
+	const int rsteps = 10;
+	const float inc = 2.4;			//increasement factor at each step	
     for(int i=0;i<rsteps;i++){
         vec3 pos = nvec3(gbufferProjection * vec4(start, 1.0)) * 0.5 + 0.5;
         if(pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1 || pos.z < 0 || pos.z > 1.0) break;
@@ -93,42 +93,21 @@ uniform float frameTimeCounter;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;
 
-mat2 rmatrix(float rad){
-	return mat2(vec2(cos(rad), -sin(rad)), vec2(sin(rad), cos(rad)));
-}
-
-float calcWaves(vec2 coord){
-	vec2 movement = abs(vec2(0.0, -frameTimeCounter * 0.31365))*0.90;
-
-	coord *= 0.262144;
-	vec2 coord0 = coord * rmatrix(1.0) - movement * 4.0;
-		 coord0.y *= 3.0;
-	vec2 coord1 = coord * rmatrix(0.5) - movement * 1.5;
-		 coord1.y *= 3.0;		 
-	vec2 coord2 = coord + movement * 0.5;
-		 coord2.y *= 3.0;
-	
-	float wave = 1.0 - texture2D(noisetex,coord0 * 0.005).x * 10.0;		//big waves
-		  wave += texture2D(noisetex,coord1 * 0.010416).x * 7.0;		//small waves
-		  wave += sqrt(texture2D(noisetex,coord2 * 0.045).x * 6.5) * 1.33;//noise texture
-		  wave *= 0.0157;
-	
-	return wave;
-}
-
-vec2 calcBump(vec2 coord){
-	const vec2 deltaPos = vec2(0.25, 0.0);
-
-	float h0 = calcWaves(coord);
-	float h1 = calcWaves(coord + deltaPos.xy);
-	float h2 = calcWaves(coord - deltaPos.xy);
-	float h3 = calcWaves(coord + deltaPos.yx);
-	float h4 = calcWaves(coord - deltaPos.yx);
-
-	float xDelta = ((h1-h0)+(h0-h2));
-	float yDelta = 2.0 * ((h3-h0)+(h0-h4));
-
-	return vec2(xDelta,yDelta)*0.04;
+float calcBump(vec2 coord) {
+	vec2 mDir = vec2(0.0);
+	mDir.x = frameTimeCounter * animationSpeed * 0.02;
+	float h0 = 0.0;
+	h0 += texture2D(noisetex, coord * vec2(0.023, 0.019) - mDir.xx).x; // Default low res normalBump
+	if (gl_FogFragCoord < 96.0) { // 6 Chunks medium res normalBump
+		h0 += texture2D(noisetex, coord * vec2(0.113, 0.117) + mDir.yx).x * 0.6;
+		if (gl_FogFragCoord < 32.0) { // 2 Chunks ULTRA high res normalBump
+			h0 += texture2D(noisetex, coord * vec2(0.527, 0.371) + mDir.xy).x * 0.4;
+			h0 -= 0.2;
+		}
+		h0 -= 0.3;
+	}
+	h0 -= 0.5;
+	return h0;
 }
 #endif
 
