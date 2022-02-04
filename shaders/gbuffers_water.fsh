@@ -1,8 +1,9 @@
+#version 120
 /*
     GravityShade for the IRIS Shaders mod.
     Made by Gravity10, Code base by Sildur.
 */
 
-#define NETHER
-#define NOSKYLIGHT
-#include "/composite1.fsh"
+#define FSH
+
+#include "program/gbuffers_water.glsl"

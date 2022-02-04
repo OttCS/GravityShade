@@ -4,11 +4,6 @@
     Made by Gravity10, Code base by Sildur.
 */
 
-varying vec2 texcoord;
-varying vec3 color;
+#define VSH
 
-void main() {
-	gl_Position = ftransform();
-	texcoord = (gl_MultiTexCoord0).xy;
-	color = gl_Color.rgb;
-}
+#include "program/final.glsl"
