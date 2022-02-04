@@ -1,4 +1,4 @@
-<p><b>Announcement</b>: The <b>Stability</b> build is in progress! The ultimate performance and bug-squashing update! It'll be out soon, but check out the Stability branch if you're super eager :)</p>
+<p><b>MOTD</b>: The <b>Stability</b> build is in progress! The ultimate performance and bug-squashing update! It'll be out soon, but check out the Stability branch if you're super eager :)</p>
 
 <h1>GravityShade IRIS by Gravity10</h1>
 
