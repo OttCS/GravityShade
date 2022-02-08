@@ -4,9 +4,17 @@ const float ambientLevel = 0.1;
 
 const float emissionStrength = 1.2;
 
+#define coloredBlockLight
+
+#ifdef coloredBlockLight
 const float emissive_R = 2.2;
 const float emissive_G = 1.4;
 const float emissive_B = 1.0;
+#else
+const float emissive_R = 1.0;
+const float emissive_G = 1.0;
+const float emissive_B = 1.0;
+#endif
 
 vec3 blockLM(float bl) {
     return vec3(emissive_R * pow(bl, emissive_R * 0.5),emissive_G * pow(bl, emissive_G * 0.5),emissive_B * pow(bl, emissive_B * 0.5)) * bl;
@@ -14,10 +22,19 @@ vec3 blockLM(float bl) {
 
 uniform int worldTime;
 
+#define coloredSkyLight
+
+#ifdef coloredSkyLight
 const vec3 noonLight = vec3(1.08, 1.08, 1.08);
-const vec3 riseLight = vec3(1.08, 0.96, 0.84);
-const vec3 setLight = vec3(1.08, 0.60, 0.72);
+const vec3 riseLight = vec3(1.08, 0.72, 0.48);
+const vec3 setLight = vec3(1.08, 0.48, 0.72);
 const vec3 nightLight = vec3(0.12, 0.24, 0.36);
+#else
+const vec3 noonLight = vec3(1.0);
+const vec3 riseLight = vec3(0.6);
+const vec3 setLight = vec3(0.6);
+const vec3 nightLight = vec3(0.2);
+#endif
 
 vec3 skyLM() {
     vec3 res;
