@@ -20,6 +20,18 @@ vec3 blockLM(float bl) {
     return vec3(emissive_R * pow(bl, emissive_R * 0.5),emissive_G * pow(bl, emissive_G * 0.5),emissive_B * pow(bl, emissive_B * 0.5)) * bl;
 }
 
+uniform int heldBlockLightValue;
+uniform int heldBlockLightValue2;
+
+vec3 blockLMwHand(float bl) {
+	float hand = max(heldBlockLightValue, heldBlockLightValue2);
+	if (gl_FogFragCoord < 8.0 && hand > 0.0) {
+		return blockLM(max(bl, hand / 15.0 * (1.0 - 0.125 * gl_FogFragCoord)));
+	} else {
+		return blockLM(bl);
+	}
+}
+
 uniform int worldTime;
 
 #define coloredSkyLight

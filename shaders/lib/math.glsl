@@ -39,12 +39,20 @@ vec3 mix3(vec3 a, vec3 b, vec3 c, float param) {
 // Fog stuff
 #ifdef FogWork
 uniform float far;
+uniform int isEyeInWater;
 
-const float FogOcclusionStart = 0.375;
+const float FogOcclusionStart = 0.01;
 const float FogOcclusionRadius = 0.997;
 
 float getFogCover(float dist) {
-	return pow(smoothstep(far * FogOcclusionStart, far * FogOcclusionRadius, dist), 2.0);
+	float fogFar = FogOcclusionRadius;
+	if (isEyeInWater > 0) {
+		fogFar = 0.247;
+	}
+	if (isEyeInWater >= 2) {
+		fogFar = 0.01;
+	}
+	return pow(smoothstep(far * FogOcclusionStart, far * fogFar / 1.0 + isEyeInWater, dist), 2.0);
 }
 
 vec3 fColAdj(vec3 v) {

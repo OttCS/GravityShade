@@ -34,7 +34,7 @@ void main() {
     if (fogCover < 1.0) {
 		tex = texture2D(texture, texcoord.st); // Get tex
 
-        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLM(lmcoord.x));
+        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLMwHand(lmcoord.x));
 
         if (comp(mcID, 10089.0) || comp(mcID, 10090.0) || comp(mcID, 10169.0)) {
             tex.rgb = emissiveToneMap(tex.rgb);

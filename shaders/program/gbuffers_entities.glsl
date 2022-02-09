@@ -34,7 +34,7 @@ void main() {
 		tex = texture2D(texture, texcoord.st); // Get tex
         tex.rgb = mix(tex.rgb, entityColor.rgb, entityColor.a); // Fix for hurt
 
-        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLM(lmcoord.x));
+        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLMwHand(lmcoord.x));
 
         // ENTITY FIXES //
 		if (entityId == 11110) { // Drowned
@@ -46,7 +46,8 @@ void main() {
 			if (tex.r > 0.5) {
 				lightComp = vec3(emissionStrength);
 			} else {
-				tex.rgb *= 0.5;
+				// tex.rgb = min(tex.rgb, vec3(0.2));
+                lightComp *= 0.25;
 			}
 		} else if (entityId == 11000) {
 			lightComp = vec3(emissionStrength);

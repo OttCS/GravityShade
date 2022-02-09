@@ -14,7 +14,6 @@ varying float isWater;
 
 uniform sampler2D texture;
 
-uniform int isEyeInWater;
 uniform vec3 cameraPosition;
 
 #include "/lib/common.glsl"
@@ -36,7 +35,7 @@ void main() {
     if (fogCover < 1.0) {
 		tex = texture2D(texture, texcoord.st); // Get tex
 
-        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLM(lmcoord.x));
+        vec3 lightComp = max(mix(ambLight, skyLight, slCurve(lmcoord.y)), blockLMwHand(lmcoord.x));
 
         if (comp(mcID, 10008.0)) {
             tex.rgb *= waterColor;
@@ -45,7 +44,6 @@ void main() {
             vec2 p = coord;
             tex.rgb -= qDist(coord , p);
             tex.a = 0.6;
-            if (isEyeInWater == 1) tex.a = 0.4;
         } else if (comp(mcID, 10089.0)) {
 			lightComp = vec3(lmcoord.x * emissionStrength * 0.8 + 0.2);
         }
